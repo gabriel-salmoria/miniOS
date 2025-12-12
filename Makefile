@@ -4,9 +4,6 @@ LD = ld
 ASM = nasm
 QEMU = qemu-system-x86_64
 
-# Addresses
-KERNEL_ADDR = 0x1000
-
 # Directories
 BUILD_DIR = build
 ARCH_DIR = arch/i386/boot
@@ -17,24 +14,26 @@ INCLUDE_DIR = include
 # Compiler Flags
 CFLAGS = -m32 -I$(INCLUDE_DIR) -I$(ARCH_DIR) -I$(DRIVERS_DIR) -ffreestanding -nostdlib -fno-builtin -fno-stack-protector -fno-pic -c
 
-# Linker Flags
-LDFLAGS = -m elf_i386 -Ttext $(KERNEL_ADDR) --oformat binary
+# Linker Flags (CRITICAL FIX: Keep -m elf_i386)
+# -m elf_i386: Force 32-bit emulation
+# -T linker.ld: Use our custom script for memory layout
+LDFLAGS = -m elf_i386 -T linker.ld
 
 # Assembler Flags
 ASMFLAGS = -f bin -I $(ARCH_DIR)/
 
 # --- Source and Object Files ---
 
-# 1. Find all C files (e.g., "./kernel/hello.c")
+# 1. Find all C files
 RAW_SOURCES = $(shell find . -name "*.c")
 
-# 2. Clean paths: Remove the leading "./" (e.g., "kernel/hello.c")
+# 2. Clean paths (remove ./ prefix)
 C_SOURCES = $(patsubst ./%, %, $(RAW_SOURCES))
 
 # 3. Create list of object files
 ALL_OBJ = $(patsubst %.c, $(BUILD_DIR)/%.o, $(C_SOURCES))
 
-# 4. CRITICAL: Separate hello.o to put it first
+# 4. Force kernel/hello.o to be first
 KERNEL_OBJ = $(BUILD_DIR)/kernel/hello.o
 OBJ = $(KERNEL_OBJ) $(filter-out $(KERNEL_OBJ), $(ALL_OBJ))
 
@@ -57,7 +56,7 @@ $(BUILD_DIR)/os-image.bin: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/kernel.bin
 $(BUILD_DIR)/kernel.bin: $(OBJ)
 	$(LD) $(LDFLAGS) -o $@ $^
 
-# Compile C files (Pattern rule to handle cleaned paths)
+# Compile C files
 $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $< -o $@
