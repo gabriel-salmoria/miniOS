@@ -1,12 +1,10 @@
-void main() {
-    // Pointer to video memory
-    char* video_memory = (char*) 0xb8000;
+#include "../drivers/screen.h"
 
-    // Write 'K' to the top-left corner
-    *video_memory = 'K'; 
-    *(video_memory + 1) = 0x0f; // White text on black background
-    
-    // Write 'C' next to it
-    *(video_memory + 2) = 'C';
-    *(video_memory + 3) = 0x0f;
+void main() {
+    clear_screen();
+    kprint_at("ShitOS 32-bit Kernel", 0, 0);
+    kprint("\n\nInitializing drivers...\n");
+    kprint("Screen driver: OK\n");
+    kprint("Port I/O:      OK\n");
+    kprint("Keyboard:      PENDING (Requires IDT)");
 }
