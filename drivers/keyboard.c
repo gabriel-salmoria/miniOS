@@ -2,7 +2,6 @@
 #include "ports.h"
 #include "screen.h"
 #include "../include/isr.h"
-#include "../include/types.h"
 
 #define BACKSPACE 0x0E
 #define ENTER 0x1C
@@ -25,7 +24,7 @@ const char sc_ascii[] = {
     '?', ' '
 };
 
-static void keyboard_callback() {
+static void keyboard_callback(registers_t* regs) {
     uint8_t scancode = port_byte_in(0x60);
 
     // Ignore key releases (highest bit set)
@@ -68,19 +67,6 @@ static void keyboard_callback() {
 }
 
 void init_keyboard() {
-    // We don't register here directly anymore;
-    // the ISR calls us, or we can register into a function pointer array later.
-    // For now, ensure buffer is clean.
+    register_interrupt_handler(33, keyboard_callback);
     key_buffer[0] = '\0';
-}
-
-// Public wrapper if you want to call it from isr.c directly
-void print_letter(uint8_t scancode) {
-    // Legacy wrapper, not used if we call keyboard_callback directly
-    // Ideally, update isr.c to call keyboard_callback(r) logic
-}
-
-// TEMPORARY: Expose this so isr.c can call it
-void handle_keyboard_interrupt() {
-    keyboard_callback();
 }
