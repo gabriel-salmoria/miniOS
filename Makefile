@@ -43,7 +43,7 @@ run: all
 
 # Disk Image
 $(BUILD_DIR)/os-image.bin: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/kernel.bin
-	dd if=/dev/zero of=$@ bs=512 count=20
+	dd if=/dev/zero of=$@ bs=512 count=200
 	dd if=$(BUILD_DIR)/boot.bin of=$@ conv=notrunc
 	dd if=$(BUILD_DIR)/kernel.bin of=$@ seek=1 conv=notrunc
 

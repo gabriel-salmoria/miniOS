@@ -13,7 +13,7 @@ idt_gate_t idt[IDT_ENTRIES];
 idt_register_t idt_reg;
 
 // 2. Import the array of pointers from assembly
-extern void (*isr_stub_table[32])(void);
+extern void (*isr_stub_table[])(void);
 
 void set_idt_gate(int n, uint32_t handler) {
     idt[n].low_offset = low_16(handler);

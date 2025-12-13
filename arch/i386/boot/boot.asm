@@ -17,7 +17,7 @@ KERNEL_OFFSET equ 0x1000 ; The memory address where we load the kernel
 [bits 16]
 load_kernel:
     mov bx, KERNEL_OFFSET ; Set buffer to 0x1000 (ES:BX)
-    mov dh, 15            ; Read 15 sectors (plenty for our kernel)
+    mov dh, 50            ; Read 15 sectors (plenty for our kernel)
     mov dl, [BOOT_DRIVE]  ; Select boot drive
 
     mov ah, 0x02          ; BIOS read sector function
