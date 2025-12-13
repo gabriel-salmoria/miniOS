@@ -1,13 +1,6 @@
 #include "screen.h"
 #include "ports.h"
 
-int get_cursor_offset();
-void set_cursor_offset(int offset);
-int print_char(char c, int col, int row, char attr);
-int get_offset(int col, int row);
-int get_offset_row(int offset);
-int get_offset_col(int offset);
-
 void kprint_at(char *message, int col, int row) {
     int offset;
     if (col >= 0 && row >= 0)
@@ -86,6 +79,14 @@ int print_char(char c, int col, int row, char attr) {
     return offset;
 }
 
-int get_offset(int col, int row) { return 2 * (row * MAX_COLS + col); }
-int get_offset_row(int offset) { return offset / (2 * MAX_COLS); }
-int get_offset_col(int offset) { return (offset - (get_offset_row(offset) * 2 * MAX_COLS)) / 2; }
+int get_offset(int col, int row) {
+    return 2 * (row * MAX_COLS + col);
+}
+
+int get_offset_row(int offset) {
+    return offset / (2 * MAX_COLS);
+}
+
+int get_offset_col(int offset) {
+    return (offset - (get_offset_row(offset) * 2 * MAX_COLS)) / 2;
+}
