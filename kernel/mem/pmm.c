@@ -1,5 +1,5 @@
-#include "pmm.h"
-#include "screen.h" // For kprint
+#include "kernel/mem/pmm.h"
+#include "drivers/screen.h" // For kprint
 
 uint32_t *free_frames_stack;
 uint32_t stack_top = 0;

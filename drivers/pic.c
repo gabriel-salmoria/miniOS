@@ -1,5 +1,5 @@
-#include "pic.h"
-#include "ports.h"
+#include "drivers/pic.h"
+#include "drivers/ports.h"
 
 // Master/Slave PIC ports
 #define PIC1_COMMAND 0x20

@@ -1,8 +1,8 @@
 #ifndef TASK_H
 #define TASK_H
 
-#include "types.h"
-#include "mem/vmm.h"
+#include <types.h>
+#include "kernel/mem/vmm.h"
 
 typedef struct task {
     uint32_t esp;          // Stack Pointer (Points to the saved registers on the stack)

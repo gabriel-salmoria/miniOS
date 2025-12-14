@@ -1,5 +1,5 @@
-#include "screen.h"
-#include "ports.h"
+#include "drivers/screen.h"
+#include "drivers/ports.h"
 
 void kprint_at(char *message, int col, int row) {
     int offset;

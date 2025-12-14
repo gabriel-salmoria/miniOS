@@ -1,7 +1,7 @@
-#include "heap.h"
-#include "pmm.h"
-#include "vmm.h"
-#include "screen.h"
+#include "kernel/mem/heap.h"
+#include "kernel/mem/pmm.h"
+#include "kernel/mem/vmm.h"
+#include "drivers/screen.h"
 
 #define KHEAP_START         0xD0000000
 #define KHEAP_INITIAL_SIZE  0x100000    // 1MB initial size

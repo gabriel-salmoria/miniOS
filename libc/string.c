@@ -1,5 +1,5 @@
-#include "string.h"
-#include "types.h"
+#include "libc/string.h"
+#include <types.h>
 
 // --- Memory Functions ---
 

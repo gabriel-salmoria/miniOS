@@ -1,7 +1,7 @@
 #ifndef VMM_H
 #define VMM_H
 
-#include "types.h"
+#include <types.h>
 
 // 1. Page Table Entry (PTE) - 32 bits total
 typedef struct {

@@ -1,7 +1,7 @@
-#include "shell.h"
-#include "screen.h"
-#include "keyboard.h"
-#include "string.h"
+#include "user/shell.h"
+#include "drivers/screen.h"
+#include "drivers/keyboard.h"
+#include "libc/string.h"
 
 void launch_shell() {
     kprint("\n[ShitOS Shell - Type 'halt' or 'clear']\n> ");

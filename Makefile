@@ -4,36 +4,32 @@ LD = ld
 ASM = nasm
 QEMU = qemu-system-x86_64
 
-# Project Structure
 BUILD_DIR = build
-ARCH_DIR = arch/i386
-KERNEL_DIR = kernel
-DRIVERS_DIR = drivers
-INCLUDE_DIR = include
-USER_DIR = user
-LIBC_DIR = libc
 
 # Compiler Flags
+# -I. allows including via "kernel/cpu/isr.h" (Root-relative)
+# -Iinclude allows including <types.h> (Global)
 CFLAGS = -m32 -ffreestanding -nostdlib -fno-builtin -fno-stack-protector -fno-pic -c
-CFLAGS += -I$(INCLUDE_DIR) -I$(KERNEL_DIR) -I$(ARCH_DIR)/boot -I$(DRIVERS_DIR) -I$(USER_DIR) -I$(LIBC_DIR)
+CFLAGS += -I. -Iinclude
 
-# Linker Flags
 LDFLAGS = -m elf_i386 -T linker.ld
 
-# --- Sources ---
+# --- Recursive Source Discovery ---
 
-# 1. C Sources (Automatically finds new files like drivers/pic.c)
+# 1. Find C files and strip the leading "./"
+# Result: kernel/main.c instead of ./kernel/main.c
 C_SOURCES = $(patsubst ./%, %, $(shell find . -name "*.c"))
-C_OBJ = $(patsubst %.c, $(BUILD_DIR)/%.o, $(C_SOURCES))
 
-# 2. Kernel Assembly (Updated to handle multiple files)
-ASM_SOURCES = $(ARCH_DIR)/interrupt.asm kernel/switch.asm
-ASM_OBJECTS = $(patsubst %.asm, $(BUILD_DIR)/%.o, $(ASM_SOURCES))
+# 2. Find ASM files (excluding boot), strip "./"
+ASM_SOURCES = $(patsubst ./%, %, $(shell find . -name "*.asm" ! -path "*/boot/*"))
 
-# 3. Object Management
-# We force main.o to be the first object linked so it's at 0x1000
-KERNEL_ENTRY = $(BUILD_DIR)/$(KERNEL_DIR)/main.o
-OBJ = $(KERNEL_ENTRY) $(ASM_OBJECTS) $(filter-out $(KERNEL_ENTRY), $(C_OBJ))
+# Create list of Object files to build
+OBJ = $(patsubst %.c, $(BUILD_DIR)/%.o, $(C_SOURCES)) \
+      $(patsubst %.asm, $(BUILD_DIR)/%.o, $(ASM_SOURCES))
+
+# Ensure main.o is linked FIRST
+MAIN_OBJ = $(BUILD_DIR)/kernel/main.o
+ALL_OBJS = $(MAIN_OBJ) $(filter-out $(MAIN_OBJ), $(OBJ))
 
 # --- Targets ---
 
@@ -51,23 +47,23 @@ $(BUILD_DIR)/os-image.bin: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/kernel.bin
 	dd if=$(BUILD_DIR)/kernel.bin of=$@ seek=1 conv=notrunc
 
 # Kernel Binary
-$(BUILD_DIR)/kernel.bin: $(OBJ) linker.ld
-	$(LD) $(LDFLAGS) -o $@ $(OBJ)
+$(BUILD_DIR)/kernel.bin: $(ALL_OBJS) linker.ld
+	$(LD) $(LDFLAGS) -o $@ $(ALL_OBJS)
 
-# Generic C Rule (Mirrors directory structure in build/)
+# Generic C Rule (Mirrors folder structure to build/)
 $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $< -o $@
 
-# Generic Assembly Rule (Updated to use pattern matching)
+# Generic Assembly Rule
 $(BUILD_DIR)/%.o: %.asm
 	@mkdir -p $(dir $@)
 	$(ASM) -f elf32 $< -o $@
 
-# Bootloader Rule
-$(BUILD_DIR)/boot.bin: $(ARCH_DIR)/boot/boot.asm
+# Bootloader
+$(BUILD_DIR)/boot.bin: arch/i386/boot/boot.asm
 	@mkdir -p $(dir $@)
-	$(ASM) -f bin -I $(ARCH_DIR)/boot/ $< -o $@
+	$(ASM) -f bin -I arch/i386/boot/ $< -o $@
 
 clean:
 	rm -rf $(BUILD_DIR)/*

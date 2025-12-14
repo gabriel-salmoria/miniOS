@@ -1,7 +1,7 @@
-#include "task.h"
-#include "mem/heap.h"
-#include "screen.h"
-#include "isr.h"
+#include "kernel/sched/task.h"
+#include "kernel/mem/heap.h"
+#include "drivers/screen.h"
+#include "kernel/cpu/isr.h"
 
 task_t *current_task = 0;
 task_t *ready_queue = 0;

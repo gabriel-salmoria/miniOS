@@ -1,7 +1,7 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
-#include "types.h"
+#include <types.h>
 
 void print_letter(uint8_t scancode);
 void init_keyboard();

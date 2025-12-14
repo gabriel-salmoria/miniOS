@@ -1,8 +1,8 @@
-#include "vmm.h"
-#include "pmm.h"
-#include "screen.h"
-#include "isr.h"    // Needed for registering the handler
-#include "string.h" // For hex_to_ascii
+#include "kernel/mem/vmm.h"
+#include "kernel/mem/pmm.h"
+#include "drivers/screen.h"
+#include "kernel/cpu/isr.h"    // Needed for registering the handler
+#include "libc/string.h" // For hex_to_ascii
 
 page_directory_t *kernel_directory;
 page_table_t *first_page_table;

@@ -1,6 +1,6 @@
-#include "idt.h"       // Changed from "../include/idt.h"
-#include "isr.h"       // Changed from "../include/isr.h"
-#include "pic.h"       // New include (compiler finds it in 'drivers/')
+#include "kernel/cpu/idt.h"
+#include "kernel/cpu/isr.h"
+#include "drivers/pic.h"       // New include (compiler finds it in 'drivers/')
 
 // 1. Define the IDT globally
 idt_gate_t idt[IDT_ENTRIES];

@@ -1,12 +1,12 @@
-#include "screen.h"
-#include "isr.h"
-#include "keyboard.h"
-#include "shell.h"
-#include "mem/pmm.h"
-#include "mem/vmm.h"
-#include "mem/heap.h"
-#include "task.h"
-#include "string.h"
+#include "drivers/screen.h"
+#include "kernel/cpu/isr.h"
+#include "drivers/keyboard.h"
+#include "user/shell.h"
+#include "kernel/mem/pmm.h"
+#include "kernel/mem/vmm.h"
+#include "kernel/mem/heap.h"
+#include "kernel/sched/task.h"
+#include "libc/string.h"
 
 extern uint32_t end;
 
