@@ -14,9 +14,7 @@ USER_DIR = user
 LIBC_DIR = libc
 
 # Compiler Flags
-# REFLECTED STRUCTURE: Added -I$(KERNEL_DIR)
-# Now you can #include "filename.h" if it exists in include/, drivers/, or kernel/
-CFLAGS = -m32  -ffreestanding -nostdlib -fno-builtin -fno-stack-protector -fno-pic -c
+CFLAGS = -m32 -ffreestanding -nostdlib -fno-builtin -fno-stack-protector -fno-pic -c
 CFLAGS += -I$(INCLUDE_DIR) -I$(KERNEL_DIR) -I$(ARCH_DIR)/boot -I$(DRIVERS_DIR) -I$(USER_DIR) -I$(LIBC_DIR)
 
 # Linker Flags
@@ -28,14 +26,14 @@ LDFLAGS = -m elf_i386 -T linker.ld
 C_SOURCES = $(patsubst ./%, %, $(shell find . -name "*.c"))
 C_OBJ = $(patsubst %.c, $(BUILD_DIR)/%.o, $(C_SOURCES))
 
-# 2. Kernel Assembly
-ASM_SOURCE = $(ARCH_DIR)/interrupt.asm
-ASM_OBJ = $(BUILD_DIR)/$(ARCH_DIR)/interrupt.o
+# 2. Kernel Assembly (Updated to handle multiple files)
+ASM_SOURCES = $(ARCH_DIR)/interrupt.asm kernel/switch.asm
+ASM_OBJECTS = $(patsubst %.asm, $(BUILD_DIR)/%.o, $(ASM_SOURCES))
 
 # 3. Object Management
 # We force main.o to be the first object linked so it's at 0x1000
 KERNEL_ENTRY = $(BUILD_DIR)/$(KERNEL_DIR)/main.o
-OBJ = $(KERNEL_ENTRY) $(ASM_OBJ) $(filter-out $(KERNEL_ENTRY), $(C_OBJ))
+OBJ = $(KERNEL_ENTRY) $(ASM_OBJECTS) $(filter-out $(KERNEL_ENTRY), $(C_OBJ))
 
 # --- Targets ---
 
@@ -61,8 +59,8 @@ $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $< -o $@
 
-# Kernel Assembly Rule
-$(ASM_OBJ): $(ASM_SOURCE)
+# Generic Assembly Rule (Updated to use pattern matching)
+$(BUILD_DIR)/%.o: %.asm
 	@mkdir -p $(dir $@)
 	$(ASM) -f elf32 $< -o $@
 

@@ -29,6 +29,5 @@ void launch_shell() {
                 kprint("\n> ");
             }
         }
-        __asm__ __volatile__("hlt");
     }
 }

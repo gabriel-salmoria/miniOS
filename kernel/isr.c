@@ -1,5 +1,6 @@
 #include "isr.h"
 #include "ports.h"
+#include "task.h"
 
 isr_t interrupt_handlers[256];
 
@@ -19,5 +20,8 @@ void isr_handler(registers_t r) {
     if (r.int_no >= 32 && r.int_no <= 47) {
         if (r.int_no >= 40) port_byte_out(0xA0, 0x20);
         port_byte_out(0x20, 0x20);
+    }
+    if (r.int_no == 32) {
+        schedule();
     }
 }

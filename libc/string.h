@@ -3,8 +3,8 @@
 
 #include "types.h"
 
-void memory_copy(char *source, char *dest, int n_bytes);
-void memory_set(uint8_t *dest, uint8_t val, uint32_t len);
+void mem_cpy(char *source, char *dest, int n_bytes);
+void memset(uint8_t *dest, uint8_t val, uint32_t len);
 
 int strlen(char *s);
 int strcmp(char *s1, char *s2);

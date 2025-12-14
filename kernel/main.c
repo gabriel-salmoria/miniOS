@@ -4,7 +4,9 @@
 #include "shell.h"
 #include "mem/pmm.h"
 #include "mem/vmm.h"
-#include "mem/heap.h" // Import Heap
+#include "mem/heap.h"
+#include "task.h"
+#include "string.h"
 
 extern uint32_t end;
 
@@ -21,14 +23,25 @@ void main() {
     uint32_t pmm_start_addr = 0x10000;
     uint32_t free_mem = total_ram - pmm_start_addr;
 
-    // 1. PMM
     pmm_init(pmm_start_addr, free_mem);
-
-    // 2. VMM
     init_vmm();
-
-    // 3. HEAP (New)
     heap_init();
 
-    launch_shell();
+    // --- MULTITASKING INIT ---
+    tasking_init(); // Main becomes PID 1
+
+    // Create the Shell as PID 2
+    create_task(launch_shell);
+
+    // Enable Interrupts to start the Scheduler
+    // (The Timer IRQ will now periodically force context switches)
+    __asm__ __volatile__("sti");
+
+    // --- IDLE LOOP ---
+    // This is where main() goes to die. It just waits.
+    // If the shell is blocked or waiting, the CPU runs this.
+    while(1) {
+        // 'hlt' puts the CPU in low-power mode until the next interrupt fires.
+        __asm__ __volatile__("hlt");
+    }
 }
