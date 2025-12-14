@@ -38,13 +38,14 @@ ALL_OBJS = $(MAIN_OBJ) $(filter-out $(MAIN_OBJ), $(OBJ))
 all: $(BUILD_DIR)/os-image.bin
 
 run: all
-	$(QEMU) -drive format=raw,file=$(BUILD_DIR)/os-image.bin,index=0,if=ide -drive format=raw,file=disk.img,index=1,if=ide
+	$(QEMU) -drive format=raw,file=$(BUILD_DIR)/os-image.bin,index=0,if=ide -drive format=raw,file=build/disk.img,index=1,if=ide
 
 # Disk Image
-$(BUILD_DIR)/os-image.bin: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/kernel.bin
+$(BUILD_DIR)/os-image.bin: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/kernel.bin README.md
 	dd if=/dev/zero of=$@ bs=512 count=100000
 	dd if=$(BUILD_DIR)/boot.bin of=$@ conv=notrunc
 	dd if=$(BUILD_DIR)/kernel.bin of=$@ seek=1 conv=notrunc
+	./create_img
 
 # Kernel Binary
 $(BUILD_DIR)/kernel.bin: $(ALL_OBJS) linker.ld

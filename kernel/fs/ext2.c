@@ -26,29 +26,45 @@ static void ext2_read_block(uint32_t block_num, uint8_t *buffer) {
     ata_read_sectors(lba, sectors_per_block, (uint16_t*)buffer, 1);
 }
 
+
 static void get_group_descriptor(uint32_t group_index, ext2_group_desc_t *desc) {
+    if (!desc) {
+        kprint("PANIC: desc is NULL\n");
+        return;
+    }
+
     uint32_t descriptor_size = sizeof(ext2_group_desc_t);
     uint32_t descriptors_per_block = block_size / descriptor_size;
+
+    if (descriptor_size == 0 || descriptors_per_block == 0) {
+        kprint("PANIC: invalid descriptor sizing\n");
+        return;
+    }
 
     uint32_t block_offset = group_index / descriptors_per_block;
     uint32_t entry_offset = group_index % descriptors_per_block;
 
-    uint8_t *temp_buf = (uint8_t*)kmalloc(block_size);
-
-    // [FIX] Safety Check: If kmalloc fails, we cannot proceed.
+    uint8_t *temp_buf = kmalloc(block_size);
     if (!temp_buf) {
-        kprint("PANIC: get_group_descriptor kmalloc failed! (Bad block_size?)\n");
+        kprint("PANIC: kmalloc failed\n");
         return;
     }
 
     ext2_read_block(bg_desc_table_offset + block_offset, temp_buf);
 
-    ext2_group_desc_t *entry = (ext2_group_desc_t*)(temp_buf + (entry_offset * descriptor_size));
+    uint32_t off = entry_offset * descriptor_size;
+    if (off + sizeof(ext2_group_desc_t) > block_size) {
+        kprint("PANIC: group descriptor out of bounds\n");
+        kfree(temp_buf);
+        return;
+    }
 
-    *desc = *entry; // <--- This will no longer crash, or won't be reached if NULL
+    ext2_group_desc_t *entry = (ext2_group_desc_t *)(temp_buf + off);
+    memcpy(desc, entry, sizeof(ext2_group_desc_t));
 
     kfree(temp_buf);
 }
+
 // --- Main Functionality ---
 
 void ext2_read_inode(uint32_t inode_num, ext2_inode_t *inode_out) {
@@ -76,8 +92,10 @@ void ext2_read_inode(uint32_t inode_num, ext2_inode_t *inode_out) {
     uint8_t *buf = (uint8_t*)kmalloc(block_size);
     ext2_read_block(target_block, buf);
 
+
     ext2_inode_t *ptr = (ext2_inode_t*)(buf + (index_in_block * inode_size));
-    *inode_out = *ptr;
+
+    memcpy(inode_out, ptr, sizeof(ext2_inode_t));
 
     kfree(buf);
 }
@@ -165,11 +183,12 @@ void ext2_init() {
     ext2_inode_t root_inode;
 
 
-
     ext2_read_inode(2, &root_inode);
 
 
+
     uint32_t file_inode_num = ext2_find_file(&root_inode, "README.md");
+
 
     if (file_inode_num > 0) {
         kprint("Found README.md!\n");

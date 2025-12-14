@@ -47,6 +47,6 @@ void main() {
     // If the shell is blocked or waiting, the CPU runs this.
     while(1) {
         // 'hlt' puts the CPU in low-power mode until the next interrupt fires.
-        kprint("hello");
+        __asm__ __volatile__("hlt");
     }
 }

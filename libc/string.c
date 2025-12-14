@@ -3,11 +3,17 @@
 
 // --- Memory Functions ---
 
-void memcpy(char *source, char *dest, int n_bytes) {
-    for (int i = 0; i < n_bytes; i++) {
-        *(dest + i) = *(source + i);
-    }
+
+void *memcpy(void *dest, const void *src, int n) {
+    unsigned char *d = dest;
+    const unsigned char *s = src;
+
+    for (int i = 0; i < n; i++)
+        d[i] = s[i];
+
+    return dest;
 }
+
 
 void memset(uint8_t *dest, uint8_t val, uint32_t len) {
     uint8_t *temp = (uint8_t *)dest;

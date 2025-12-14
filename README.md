@@ -1,1 +1,3 @@
-Hello from the Host! If you see this, Ext2 works.
+# SHIT OS
+
+yeah bros we are doing it

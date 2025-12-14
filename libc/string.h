@@ -3,7 +3,7 @@
 
 #include <types.h>
 
-void mem_cpy(char *source, char *dest, int n_bytes);
+void *memcpy(void *source, const void *dest, int n_bytes);
 void memset(uint8_t *dest, uint8_t val, uint32_t len);
 
 int strlen(const char *s);
