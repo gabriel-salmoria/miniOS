@@ -1,16 +1,16 @@
 #ifndef PORTS_H
 #define PORTS_H
 
-unsigned char
-port_byte_in(unsigned short port);
+#include <types.h>
 
-void
-port_byte_out(unsigned short port, unsigned char data);
+uint8_t inb(uint16_t port);
+void outb(uint16_t port, uint8_t data);
 
-unsigned short
-port_word_in(unsigned short port);
+uint16_t inw(uint16_t port);
+void outw(uint16_t port, uint16_t data);
 
-void
-port_word_out(unsigned short port, unsigned short data);
+// Special helpers for ATA (Hard Drive)
+void insw(uint16_t port, void *addr, int count);
+void outsw(uint16_t port, void *addr, int count);
 
 #endif

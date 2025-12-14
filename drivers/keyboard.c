@@ -23,7 +23,7 @@ const char sc_ascii[] = {
 };
 
 static void keyboard_callback(registers_t* regs) {
-    uint8_t scancode = port_byte_in(0x60);
+    uint8_t scancode = inb(0x60);
 
     // If previous command wasn't handled, ignore new input (or implement a ring buffer later)
     if (input_complete) return;
