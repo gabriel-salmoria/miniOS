@@ -1,7 +1,6 @@
 #include "pmm.h"
 #include "screen.h" // For kprint
 
-// Pointer to the start of our stack
 uint32_t *free_frames_stack;
 uint32_t stack_top = 0;
 uint32_t free_frames_count = 0;
@@ -16,7 +15,6 @@ void pmm_init(uint32_t mem_start, uint32_t mem_size) {
     free_frames_stack = (uint32_t *)mem_start;
 
     // 3. Calculate space required for the stack itself
-    // 128MB RAM -> ~32,000 pages -> stack needs ~128KB
     uint32_t total_pages = mem_size / PAGE_SIZE;
     uint32_t stack_size_bytes = total_pages * sizeof(uint32_t);
 
@@ -28,13 +26,16 @@ void pmm_init(uint32_t mem_start, uint32_t mem_size) {
         first_free_page += PAGE_SIZE - (first_free_page % PAGE_SIZE);
     }
 
-    // 5. Fill the stack with every available page address
+    // 5. Fill the stack (REVERSE ORDER FIX)
+    // We iterate backwards. By pushing High Addresses first, they end up at the
+    // bottom of the stack. Low Addresses end up at the top.
+    // So pmm_alloc_page() will return Low Addresses (safe) first.
     stack_top = 0;
-    for (uint32_t i = 0; i < total_pages; i++) {
+    for (int32_t i = total_pages - 1; i >= 0; i--) {
         uint32_t addr = first_free_page + (i * PAGE_SIZE);
 
-        // Don't exceed physical RAM limits
-        if (addr >= mem_start + mem_size) break;
+        // Safety check: Don't exceed physical RAM
+        if (addr >= mem_start + mem_size) continue;
 
         free_frames_stack[stack_top] = addr;
         stack_top++;
@@ -42,7 +43,6 @@ void pmm_init(uint32_t mem_start, uint32_t mem_size) {
     }
 
     kprint("PMM Initialized. Free Pages: ");
-    // (Optional: use int_to_ascii here if you have it)
     kprint("OK\n");
 }
 

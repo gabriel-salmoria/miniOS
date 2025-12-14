@@ -44,5 +44,7 @@ typedef struct {
 } __attribute__((aligned(4096))) page_table_t;
 
 void init_vmm();
+void vmm_map_page(uint32_t phys_addr, uint32_t virt_addr, uint32_t flags);
+
 
 #endif
