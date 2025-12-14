@@ -1,12 +1,6 @@
-#include "../include/idt.h"
-#include "../include/isr.h"
-#include "../drivers/ports.h" // We need port I/O now
-
-// --- PIC CONSTANTS ---
-#define PIC1_COMMAND 0x20
-#define PIC1_DATA    0x21
-#define PIC2_COMMAND 0xA0
-#define PIC2_DATA    0xA1
+#include "idt.h"       // Changed from "../include/idt.h"
+#include "isr.h"       // Changed from "../include/isr.h"
+#include "pic.h"       // New include (compiler finds it in 'drivers/')
 
 // 1. Define the IDT globally
 idt_gate_t idt[IDT_ENTRIES];
@@ -29,41 +23,14 @@ void set_idt() {
     __asm__ __volatile__("lidt (%0)" : : "r" (&idt_reg));
 }
 
-// --- NEW FUNCTION: Remap PIC ---
-void init_pic() {
-    // ICW1: Start initialization
-    port_byte_out(PIC1_COMMAND, 0x11);
-    port_byte_out(PIC2_COMMAND, 0x11);
-
-    // ICW2: Remap offsets (The important part!)
-    // Master PIC (IRQ 0-7) starts at 32 (0x20)
-    port_byte_out(PIC1_DATA, 0x20);
-    // Slave PIC (IRQ 8-15) starts at 40 (0x28)
-    port_byte_out(PIC2_DATA, 0x28);
-
-    // ICW3: Cascade setup
-    port_byte_out(PIC1_DATA, 0x04);
-    port_byte_out(PIC2_DATA, 0x02);
-
-    // ICW4: Environment (8086 mode)
-    port_byte_out(PIC1_DATA, 0x01);
-    port_byte_out(PIC2_DATA, 0x01);
-
-    // Mask interrupts (Optional: Unmask only what we need later)
-    // For now, let's unmask everything (0x0 = all enabled)
-    port_byte_out(PIC1_DATA, 0x0);
-    port_byte_out(PIC2_DATA, 0x0);
-}
-
 void isr_install() {
     set_idt();
 
-    // Install the first 32 CPU exception handlers + 16 IRQs
-    // CHANGE THIS LIMIT FROM 32 TO 48
+    // Install handlers 0-47
     for (int i = 0; i < 48; i++) {
         set_idt_gate(i, (uint32_t)isr_stub_table[i]);
     }
 
-    init_pic();
+    init_pic(); // Now calls the driver
     __asm__ __volatile__("sti");
 }

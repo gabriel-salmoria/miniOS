@@ -1,0 +1,94 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-m32",
+      "-ffreestanding",
+      "-fno-builtin",
+      "-fno-stack-protector",
+      "-fno-pic",
+      "-c",
+      "-Iinclude",
+      "-Ikernel",
+      "-Iarch/i386/boot",
+      "-Idrivers",
+      "-Iuser",
+      "-Ilibc",
+      "-o",
+      "build/kernel/main.o",
+      "kernel/main.c"
+    ],
+    "directory": "/home/gabs/Documents/projects/shitOS",
+    "file": "/home/gabs/Documents/projects/shitOS/kernel/main.c",
+    "output": "/home/gabs/Documents/projects/shitOS/build/kernel/main.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-m32",
+      "-ffreestanding",
+      "-fno-builtin",
+      "-fno-stack-protector",
+      "-fno-pic",
+      "-c",
+      "-Iinclude",
+      "-Ikernel",
+      "-Iarch/i386/boot",
+      "-Idrivers",
+      "-Iuser",
+      "-Ilibc",
+      "-o",
+      "build/libc/string.o",
+      "libc/string.c"
+    ],
+    "directory": "/home/gabs/Documents/projects/shitOS",
+    "file": "/home/gabs/Documents/projects/shitOS/libc/string.c",
+    "output": "/home/gabs/Documents/projects/shitOS/build/libc/string.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-m32",
+      "-ffreestanding",
+      "-fno-builtin",
+      "-fno-stack-protector",
+      "-fno-pic",
+      "-c",
+      "-Iinclude",
+      "-Ikernel",
+      "-Iarch/i386/boot",
+      "-Idrivers",
+      "-Iuser",
+      "-Ilibc",
+      "-o",
+      "build/drivers/keyboard.o",
+      "drivers/keyboard.c"
+    ],
+    "directory": "/home/gabs/Documents/projects/shitOS",
+    "file": "/home/gabs/Documents/projects/shitOS/drivers/keyboard.c",
+    "output": "/home/gabs/Documents/projects/shitOS/build/drivers/keyboard.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-m32",
+      "-ffreestanding",
+      "-fno-builtin",
+      "-fno-stack-protector",
+      "-fno-pic",
+      "-c",
+      "-Iinclude",
+      "-Ikernel",
+      "-Iarch/i386/boot",
+      "-Idrivers",
+      "-Iuser",
+      "-Ilibc",
+      "-o",
+      "build/user/shell.o",
+      "user/shell.c"
+    ],
+    "directory": "/home/gabs/Documents/projects/shitOS",
+    "file": "/home/gabs/Documents/projects/shitOS/user/shell.c",
+    "output": "/home/gabs/Documents/projects/shitOS/build/user/shell.o"
+  }
+]
