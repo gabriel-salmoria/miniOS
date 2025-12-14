@@ -26,6 +26,8 @@ SECTIONS {
         *(.bss)
     }
 
+    end = .;
+
     /* DISCARD EVERYTHING ELSE (Metadata, debug info, etc.) */
     /DISCARD/ : {
         *(.eh_frame)
