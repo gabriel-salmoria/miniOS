@@ -6,8 +6,8 @@
 void mem_cpy(char *source, char *dest, int n_bytes);
 void memset(uint8_t *dest, uint8_t val, uint32_t len);
 
-int strlen(char *s);
-int strcmp(char *s1, char *s2);
+int strlen(const char *s);
+int strcmp(const char *s1, const char *s2);
 void append(char *s, char n);
 void backspace(char *s);
 

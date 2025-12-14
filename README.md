@@ -1,4 +1,1 @@
-# SHIT OS
-uh idk bro, my own os kinda
-
-license: mit
+Hello from the Host! If you see this, Ext2 works.

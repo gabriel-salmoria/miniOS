@@ -38,7 +38,7 @@ ALL_OBJS = $(MAIN_OBJ) $(filter-out $(MAIN_OBJ), $(OBJ))
 all: $(BUILD_DIR)/os-image.bin
 
 run: all
-	$(QEMU) -drive format=raw,file=$(BUILD_DIR)/os-image.bin
+	$(QEMU) -drive format=raw,file=$(BUILD_DIR)/os-image.bin,index=0,if=ide -drive format=raw,file=disk.img,index=1,if=ide
 
 # Disk Image
 $(BUILD_DIR)/os-image.bin: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/kernel.bin

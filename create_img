@@ -1,0 +1,19 @@
+# 1. Create an empty 10MB file
+dd if=/dev/zero of=disk.img bs=1M count=10
+
+# 2. Format it as Ext2
+# This writes the Superblock and Inode Tables to the file.
+/sbin/mkfs.ext2 disk.img
+
+# 3. Create a dummy README locally
+echo "Hello from the Host! If you see this, Ext2 works." > README.md
+
+# 4. Copy the file into the disk image
+# Option A: The "Official" Way (requires sudo)
+mkdir -p mnt
+sudo mount -o loop disk.img mnt   # Mount the image to folder 'mnt'
+sudo cp README.md mnt/            # Copy the file
+sudo umount mnt                   # Unmount (Important! Flushes data to disk)
+
+# Option B: The "No Sudo" Way (using debugfs)
+# debugfs -w -R "write README.md README.md" disk.img

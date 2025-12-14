@@ -6,6 +6,8 @@
 #include "kernel/mem/vmm.h"
 #include "kernel/mem/heap.h"
 #include "kernel/sched/task.h"
+#include "kernel/fs/ext2.h"
+
 #include "libc/string.h"
 
 extern uint32_t end;
@@ -30,8 +32,11 @@ void main() {
     // --- MULTITASKING INIT ---
     tasking_init(); // Main becomes PID 1
 
+
     // Create the Shell as PID 2
     create_task(launch_shell);
+
+    ext2_init();
 
     // Enable Interrupts to start the Scheduler
     // (The Timer IRQ will now periodically force context switches)
@@ -42,6 +47,6 @@ void main() {
     // If the shell is blocked or waiting, the CPU runs this.
     while(1) {
         // 'hlt' puts the CPU in low-power mode until the next interrupt fires.
-        __asm__ __volatile__("hlt");
+        kprint("hello");
     }
 }
