@@ -12,7 +12,6 @@ KERNEL_OFFSET equ 0x1000 ; The memory address where we load the kernel
     jmp $
 
 %include "gdt.asm"
-%include "print.asm"
 
 [bits 16]
 load_kernel:
@@ -33,7 +32,6 @@ load_kernel:
 
 disk_error:
     mov si, err_disk      ; Point SI to the error message
-    call print            ; Use the 16-bit print function
     jmp $                 ; Lock up the CPU
 
 err_disk db 'Error reading disk sectors!', 0x0d, 0x0a, 0
