@@ -33,10 +33,11 @@ void main() {
     tasking_init(); // Main becomes PID 1
 
 
+    ext2_init();
+
     // Create the Shell as PID 2
     create_task(launch_shell);
 
-    ext2_init();
 
     // Enable Interrupts to start the Scheduler
     // (The Timer IRQ will now periodically force context switches)
