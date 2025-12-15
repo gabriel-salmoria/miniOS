@@ -2,6 +2,7 @@
 #include "drivers/block/ata.h"
 #include "drivers/screen.h"
 #include "kernel/mem/heap.h"
+#include "kernel/fs/mbr.h"
 #include "libc/string.h"
 
 // --- Globals ---
@@ -14,6 +15,8 @@ static uint32_t sectors_per_block;
 static uint32_t inodes_per_group;
 static uint32_t bg_desc_table_offset; // This is a Block Group Index, not byte offset
 
+static uint32_t fs_offset_lba = 0;
+
 // --- Internal Helpers ---
 
 static uint32_t block_to_lba(uint32_t block) {
@@ -23,7 +26,7 @@ static uint32_t block_to_lba(uint32_t block) {
 static void ext2_read_block(uint32_t block_num, uint8_t *buffer) {
     if (block_num == 0) return;
     uint32_t lba = block_to_lba(block_num);
-    ata_read_sectors(lba, sectors_per_block, (uint16_t*)buffer, 1);
+    ata_read_sectors(lba + fs_offset_lba, sectors_per_block, (uint16_t*)buffer, 0);
 }
 
 
@@ -148,6 +151,8 @@ uint32_t ext2_find_file(ext2_inode_t *dir_inode, const char *name) {
 // --- Initialization ---
 
 void ext2_init() {
+    fs_offset_lba = get_partition_offset();
+
     // 1. Allocate Superblock on Heap (Safe Memory)
     sb = (ext2_superblock_t*)sb_raw_data;
 
@@ -159,7 +164,7 @@ void ext2_init() {
 
     // 2. Read Superblock into the allocated memory
     // Note: 'sb' is already a pointer, so we cast it directly.
-    ata_read_sectors(2, 2, (uint16_t*)sb, 1);
+    ata_read_sectors(fs_offset_lba + 2, 2, (uint16_t*)sb, 0);
 
     // CHANGE 4: Use 'sb->' for member access
     if (sb->magic != EXT2_SIGNATURE) {

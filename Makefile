@@ -38,14 +38,32 @@ ALL_OBJS = $(MAIN_OBJ) $(filter-out $(MAIN_OBJ), $(OBJ))
 all: $(BUILD_DIR)/os-image.bin
 
 run: all
-	$(QEMU) -drive format=raw,file=$(BUILD_DIR)/os-image.bin,index=0,if=ide -drive format=raw,file=build/disk.img,index=1,if=ide
+	$(QEMU) -drive format=raw,file=$(BUILD_DIR)/os-image.bin,index=0,if=ide
 
-# Disk Image
+# Disk Image (Partitioned: MBR + Kernel + Ext2)
+# Makefile
+
 $(BUILD_DIR)/os-image.bin: $(BUILD_DIR)/boot.bin $(BUILD_DIR)/kernel.bin README.md
-	dd if=/dev/zero of=$@ bs=512 count=100000
+	# 1. Create a blank 10MB disk image
+	dd if=/dev/zero of=$@ bs=1M count=10
+
+	# 2. Write Bootloader (Sector 0) -- DO THIS FIRST
 	dd if=$(BUILD_DIR)/boot.bin of=$@ conv=notrunc
+
+	# 3. Create MBR Partition Table -- DO THIS SECOND
+	# sfdisk will preserve the code in Sector 0 we just wrote
+	echo "start=2048, type=83, bootable" | sfdisk $@
+
+	# 4. Write Kernel (Sector 1)
 	dd if=$(BUILD_DIR)/kernel.bin of=$@ seek=1 conv=notrunc
-	./create_img
+
+	# 5. Create and Inject Filesystem
+	dd if=/dev/zero of=$(BUILD_DIR)/fs.img bs=1M count=9
+	/sbin/mkfs.ext2 $(BUILD_DIR)/fs.img
+	debugfs -w -R "write README.md README.md" $(BUILD_DIR)/fs.img
+	dd if=$(BUILD_DIR)/fs.img of=$@ seek=2048 conv=notrunc
+	rm $(BUILD_DIR)/fs.img
+
 
 # Kernel Binary
 $(BUILD_DIR)/kernel.bin: $(ALL_OBJS) linker.ld

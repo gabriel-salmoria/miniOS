@@ -29,11 +29,13 @@ void main() {
     init_vmm();
     heap_init();
 
+
     // --- MULTITASKING INIT ---
     tasking_init(); // Main becomes PID 1
 
 
     ext2_init();
+
 
     // Create the Shell as PID 2
     create_task(launch_shell);
