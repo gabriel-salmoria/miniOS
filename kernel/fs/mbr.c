@@ -23,8 +23,8 @@ uint32_t get_partition_offset() {
 
     // 2. Scan Partitions
     for (int i = 0; i < 4; i++) {
-        if (mbr->partitions[i].sys_id == 0x83) { // 0x83 = Linux Native
-            kprint("[MBR] - Found Linux Partition.\n");
+        if (mbr->partitions[i].sys_id == 0x83) {
+            kprint("[MBR] - Found OS Partition.\n");
             uint32_t offset = mbr->partitions[i].start_lba;
             kfree(mbr);
             return offset;
