@@ -20,7 +20,7 @@ void tasking_init() {
 
     ready_queue = current_task;
 
-    kprint("Multitasking Initialized.\n");
+    kprint("[SCHED] - Multitasking Initialized.\n");
 }
 
 void create_task(void (*entry)()) {

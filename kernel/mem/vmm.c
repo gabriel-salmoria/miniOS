@@ -76,10 +76,9 @@ void init_vmm() {
     register_interrupt_handler(14, page_fault_handler);
 
     // 6. Enable Paging
-    kprint("Enabling Paging...");
+    kprint("[VMM] - Virtual Memory Enabled.\n");
     load_page_directory((uint32_t *)kernel_directory);
     enable_paging();
-    kprint("[OK]\n");
 
 }
 

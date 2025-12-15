@@ -42,8 +42,7 @@ void pmm_init(uint32_t mem_start, uint32_t mem_size) {
         free_frames_count++;
     }
 
-    kprint("PMM Initialized. Free Pages: ");
-    kprint("OK\n");
+    kprint("[PMM] - Physical Memory Initialized. \n");
 }
 
 void *pmm_alloc_page() {

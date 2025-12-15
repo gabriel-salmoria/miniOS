@@ -14,7 +14,7 @@ extern uint32_t end;
 
 void main() {
     clear_screen();
-    kprint("ShitOS 32-bit Kernel Initializing...\n");
+    kprint("[MAIN] - ShitOS 32-bit Kernel Initializing...\n\n");
 
     isr_install();
     init_keyboard();

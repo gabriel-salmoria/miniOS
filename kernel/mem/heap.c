@@ -29,7 +29,7 @@ void heap_init() {
     start_tag->is_free = 1;
     start_tag->next = 0;
 
-    kprint("Heap Initialized at 0xD0000000 [OK]\n");
+    kprint("[HEAP] - Heap Initialized.\n");
 }
 
 void *kmalloc(uint32_t size) {

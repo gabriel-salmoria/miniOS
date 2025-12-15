@@ -180,36 +180,5 @@ void ext2_init() {
 
     bg_desc_table_offset = (block_size == 1024) ? 2 : 1;
 
-    kprint("Ext2: Filesystem Mounted.\n");
-
-
-
-    // --- Test Code ---
-    ext2_inode_t root_inode;
-
-
-    ext2_read_inode(2, &root_inode);
-
-
-
-    uint32_t file_inode_num = ext2_find_file(&root_inode, "README.md");
-
-
-    if (file_inode_num > 0) {
-        kprint("Found README.md!\n");
-
-        ext2_inode_t file_inode;
-        ext2_read_inode(file_inode_num, &file_inode);
-
-        char *file_buf = (char*)kmalloc(file_inode.size + 1);
-        ext2_read_file(&file_inode, (uint8_t*)file_buf);
-        file_buf[file_inode.size] = '\0';
-
-        kprint("File Contents:\n");
-        kprint(file_buf);
-        kprint("\n");
-        kfree(file_buf);
-    } else {
-        kprint("README.md not found in root.\n");
-    }
+    kprint("[Ext2] - Filesystem Mounted.\n");
 }
