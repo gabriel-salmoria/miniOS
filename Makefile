@@ -4,7 +4,10 @@ BOOT_LDFLAGS = -nostdlib -Wl,-T,bootloader/linker.ld -Wl,--image-base,0x400000 -
 
 KERNEL_CC = gcc
 KERNEL_LD = ld
+
 KERNEL_CFLAGS = -Wall -Wextra -m64 -ffreestanding -fno-stack-protector -fno-pic -mno-red-zone -mcmodel=large -Iinclude -I.
+KERNEL_CFLAGS += -ffreestanding -mno-red-zone -fno-stack-protector -fno-pic -mno-sse -mno-mmx
+
 KERNEL_LDFLAGS = -m elf_x86_64 -T linker.ld --oformat binary
 
 QEMU = qemu-system-x86_64
@@ -24,6 +27,7 @@ KERNEL_OBJS = $(BUILD_DIR)/kernel/main.o \
               $(BUILD_DIR)/kernel/mem/vmm.o \
               $(BUILD_DIR)/kernel/mem/heap.o \
               $(BUILD_DIR)/kernel/sched/task.o \
+              $(BUILD_DIR)/kernel/sched/timer.o \
               $(BUILD_DIR)/kernel/fs/mbr.o \
               $(BUILD_DIR)/kernel/fs/ext2.o \
               $(BUILD_DIR)/kernel/cpu/gdt.o \

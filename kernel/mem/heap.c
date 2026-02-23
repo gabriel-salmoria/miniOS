@@ -3,7 +3,8 @@
 #include "kernel/mem/vmm.h"
 #include "drivers/screen.h"
 
-#define KHEAP_START         0xD0000000
+// Move heap to 4GB to avoid the 4GB Huge Page identity map conflict
+#define KHEAP_START         0x100000000ULL
 #define KHEAP_INITIAL_SIZE  0x100000
 #define MIN_BLOCK_SIZE      16
 
@@ -26,6 +27,8 @@ void heap_init() {
 
     kprint("[HEAP] - Heap Initialized.\n");
 }
+
+// ... rest of kmalloc and kfree remain the same
 
 void *kmalloc(uint32_t size) {
     if (size == 0) return 0;

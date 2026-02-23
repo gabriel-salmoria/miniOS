@@ -10,7 +10,8 @@ typedef struct task {
     struct task *next;
 } task_t;
 
-extern task_t *current_task;
+extern task_t * current_task;
+extern task_t * ready_queue;
 
 void tasking_init();
 void create_task(void (*entry)());
