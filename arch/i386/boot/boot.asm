@@ -1,48 +1,68 @@
 [org 0x7c00]
-KERNEL_OFFSET equ 0x1000 ; The memory address where we load the kernel
+KERNEL_OFFSET equ 0x1000
 
-    mov [BOOT_DRIVE], dl ; BIOS stores the boot drive in DL; save it
+    mov [BOOT_DRIVE], dl
 
-    mov bp, 0x9000       ; Set up the stack
+    ; [DEBUG] Announce we started
+    mov bp, 0x9000
     mov sp, bp
 
-    call load_kernel     ; 1. Load C kernel from disk
-    call switch_to_pm    ; 2. Switch to 32-bit mode
+    mov si, msg_boot
+    call print_string
 
+    call load_kernel
+
+    mov si, msg_pm
+    call print_string
+
+    call switch_to_pm
     jmp $
 
 %include "gdt.asm"
 
 [bits 16]
 load_kernel:
-    mov bx, KERNEL_OFFSET ; Set buffer to 0x1000 (ES:BX)
-    mov dh, 50            ; Read 15 sectors (plenty for our kernel)
-    mov dl, [BOOT_DRIVE]  ; Select boot drive
+    mov bx, KERNEL_OFFSET
+    mov dh, 50            ; Read 50 sectors
+    mov dl, [BOOT_DRIVE]
 
-    mov ah, 0x02          ; BIOS read sector function
-    mov al, dh            ; Read DH sectors
-    mov ch, 0x00          ; Cylinder 0
-    mov dh, 0x00          ; Head 0
-    mov cl, 0x02          ; Start reading from 2nd sector (sector 1 is bootloader)
+    mov ah, 0x02          ; BIOS CHS Read
+    mov al, dh
+    mov ch, 0x00
+    mov dh, 0x00
+    mov cl, 0x02
+    int 0x13
 
-    int 0x13              ; BIOS interrupt
-
-    jc disk_error         ; Jump if Carry Flag is set (error)
+    jc disk_error         ; If Carry Flag=1, jump to error
     ret
 
 disk_error:
-    mov si, err_disk      ; Point SI to the error message
-    jmp $                 ; Lock up the CPU
+    mov si, err_disk      ; Load error message
+    call print_string     ; [FIX] Actually print it!
+    jmp $
 
-err_disk db 'Error reading disk sectors!', 0x0d, 0x0a, 0
+; --- New Print Routine ---
+print_string:
+    mov ah, 0x0e          ; BIOS TTY output
+.loop:
+    lodsb                 ; Load byte at SI into AL, increment SI
+    cmp al, 0             ; Check for null terminator
+    je .done
+    int 0x10              ; Print char
+    jmp .loop
+.done:
+    ret
+
+msg_boot db 'Booting ShitOS...', 0x0d, 0x0a, 0
+msg_pm   db 'Switching to PM...', 0x0d, 0x0a, 0
+err_disk db 'Disk Read Error!', 0x0d, 0x0a, 0
 
 [bits 32]
 begin_pm:
-    call KERNEL_OFFSET    ; 3. Jump to the loaded kernel code
+    call KERNEL_OFFSET
     jmp $
 
 BOOT_DRIVE db 0
 
-; Padding
 times 510-($-$$) db 0
 dw 0xaa55
