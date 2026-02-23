@@ -23,21 +23,15 @@ const char sc_ascii[] = {
 };
 
 static void keyboard_callback(registers_t* regs) {
+    (void)regs; // Suppress unused parameter warning
     uint8_t scancode = inb(0x60);
 
-    // If previous command wasn't handled, ignore new input (or implement a ring buffer later)
     if (input_complete) return;
-
     if (scancode & 0x80) return; // Ignore break codes
 
     if (scancode == BACKSPACE) {
         if (buffer_index > 0) {
-            // Visual Update
-            int offset = get_cursor_offset() - 2;
-            int row = get_offset_row(offset);
-            int col = get_offset_col(offset);
-            print_char(' ', col, row, WHITE_ON_BLACK);
-            set_cursor_offset(offset);
+            kprint_backspace(); // Use the new 64-bit helper
 
             // Buffer Update
             buffer_index--;
@@ -46,7 +40,7 @@ static void keyboard_callback(registers_t* regs) {
     }
     else if (scancode == ENTER) {
         kprint("\n");
-        input_complete = 1; // Notify Consumer
+        input_complete = 1;
     }
     else {
         if (scancode > 57) return;

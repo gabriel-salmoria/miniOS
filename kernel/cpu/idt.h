@@ -6,29 +6,22 @@
 #define KERNEL_CS 0x08
 #define IDT_ENTRIES 256
 
-// 1. The Struct: One entry in the IDT
 typedef struct {
-    uint16_t low_offset;   // Lower 16 bits of handler function address
-    uint16_t sel;          // Kernel segment selector
-    uint8_t  always0;
-
-    /* First byte
-     * Bit 7: "Present"
-     * Bits 6-5: Privilege (0=kernel..3=user)
-     * Bit 4: Set to 0 for interrupt gates
-     * Bits 3-0: bits 1110 = decimal 14 = "32 bit interrupt gate" */
-    uint8_t  flags;
-    uint16_t high_offset;  // Higher 16 bits of handler function address
+    uint16_t offset_low;    // Offset bits 0..15
+    uint16_t selector;      // A code segment selector in GDT
+    uint8_t  ist;           // Interrupt Stack Table offset
+    uint8_t  type_attr;     // Type and attributes
+    uint16_t offset_mid;    // Offset bits 16..31
+    uint32_t offset_high;   // Offset bits 32..63
+    uint32_t reserved;      // Reserved
 } __attribute__((packed)) idt_gate_t;
 
-// 2. The Pointer: What we pass to the 'lidt' assembly instruction
 typedef struct {
     uint16_t limit;
-    uint32_t base;
+    uint64_t base;          // Expanded to 64-bit
 } __attribute__((packed)) idt_register_t;
 
-// Functions implemented in kernel/idt.c
-void set_idt_gate(int n, uint32_t handler);
+void set_idt_gate(int n, uint64_t handler);
 void set_idt();
 
 #endif

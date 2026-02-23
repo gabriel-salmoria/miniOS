@@ -1,19 +1,18 @@
-[bits 32]
+[bits 64]
+extern isr_handler
 
-; Define a macro for ISRs without error code (pushes dummy 0)
 %macro ISR_NOERRCODE 1
     global isr%1
     isr%1:
-        push byte 0    ; Dummy error code
-        push byte %1   ; Interrupt number
+        push qword 0      ; Dummy error code
+        push qword %1     ; Interrupt number
         jmp isr_common_stub
 %endmacro
 
-; Define a macro for ISRs with error code
 %macro ISR_ERRCODE 1
     global isr%1
     isr%1:
-        push byte %1   ; Interrupt number
+        push qword %1     ; Interrupt number
         jmp isr_common_stub
 %endmacro
 
@@ -71,8 +70,8 @@ ISR_NOERRCODE 47 ; IRQ 15
 global isr_stub_table
 isr_stub_table:
     %assign i 0
-    %rep    48      ; CHANGE THIS FROM 32 TO 48
-        dd isr%+i
+    %rep    48
+        dq isr%+i
         %assign i i+1
     %endrep
 
@@ -80,25 +79,42 @@ isr_stub_table:
 extern isr_handler
 
 isr_common_stub:
-    pusha           ; Pushes edi,esi,ebp,esp,ebx,edx,ecx,eax
+    ; Save all registers
+    push rax
+    push rbx
+    push rcx
+    push rdx
+    push rsi
+    push rdi
+    push rbp
+    push r8
+    push r9
+    push r10
+    push r11
+    push r12
+    push r13
+    push r14
+    push r15
 
-    mov ax, ds      ; Lower 16-bits of eax = ds.
-    push eax        ; Save the data segment descriptor
-
-    mov ax, 0x10    ; Load the kernel data segment descriptor
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-
+    mov rdi, rsp          ; Pass registers_t* in RDI (System V ABI)
     call isr_handler
 
-    pop eax         ; Reload the original data segment descriptor
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
+    ; Restore all registers
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop r11
+    pop r10
+    pop r9
+    pop r8
+    pop rbp
+    pop rdi
+    pop rsi
+    pop rdx
+    pop rcx
+    pop rbx
+    pop rax
 
-    popa            ; Pops edi,esi,ebp...
-    add esp, 8      ; Cleans up the pushed error code and ISR number
-    iret            ; Pops CS, EIP, EFLAGS, SS, ESP
+    add rsp, 16           ; Clean up error code and int number
+    iretq                 ; Use 64-bit interrupt return

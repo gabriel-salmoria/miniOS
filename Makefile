@@ -2,7 +2,6 @@ BOOT_CC = x86_64-w64-mingw32-gcc
 BOOT_CFLAGS = -Wall -Wextra -mno-red-zone -m64 -ffreestanding -fshort-wchar -fPIC -fPIE -fno-stack-protector -Iinclude
 BOOT_LDFLAGS = -nostdlib -Wl,-T,bootloader/linker.ld -Wl,--image-base,0x400000 -Wl,-mi386pep -Wl,--subsystem,10 -Wl,-e,efi_main
 
-# Switch to your system's native gcc or cross-compiler for the kernel
 KERNEL_CC = gcc
 KERNEL_LD = ld
 KERNEL_CFLAGS = -Wall -Wextra -m64 -ffreestanding -fno-stack-protector -fno-pic -mno-red-zone -mcmodel=large -Iinclude -I.
@@ -12,8 +11,25 @@ QEMU = qemu-system-x86_64
 BUILD_DIR = build
 BOOT_DIR = bootloader
 
-# ONLY compiling main.c and screen.c for now to survive the 64-bit jump
-KERNEL_OBJS = $(BUILD_DIR)/kernel/main.o $(BUILD_DIR)/drivers/screen.o
+# Ensure main.o is first in the list
+KERNEL_OBJS = $(BUILD_DIR)/kernel/main.o \
+              $(BUILD_DIR)/drivers/screen.o \
+              $(BUILD_DIR)/drivers/ports.o \
+              $(BUILD_DIR)/drivers/keyboard.o \
+              $(BUILD_DIR)/drivers/pic.o \
+              $(BUILD_DIR)/drivers/block/ata.o \
+              $(BUILD_DIR)/kernel/cpu/idt.o \
+              $(BUILD_DIR)/kernel/cpu/isr.o \
+              $(BUILD_DIR)/kernel/mem/pmm.o \
+              $(BUILD_DIR)/kernel/mem/vmm.o \
+              $(BUILD_DIR)/kernel/mem/heap.o \
+              $(BUILD_DIR)/kernel/sched/task.o \
+              $(BUILD_DIR)/kernel/fs/mbr.o \
+              $(BUILD_DIR)/kernel/fs/ext2.o \
+              $(BUILD_DIR)/arch/x86_64/cpu/interrupt.o \
+              $(BUILD_DIR)/arch/x86_64/cpu/switch.o \
+              $(BUILD_DIR)/libc/string.o \
+              $(BUILD_DIR)/user/shell.o
 
 .PHONY: all run clean
 
@@ -37,10 +53,14 @@ $(BUILD_DIR)/%.o: %.c
 	@echo "  [CC]    $<"
 	@$(KERNEL_CC) $(KERNEL_CFLAGS) -c $< -o $@
 
+$(BUILD_DIR)/%.o: %.asm
+	@mkdir -p $(dir $@)
+	@echo "  [AS]    $<"
+	@nasm -f elf64 $< -o $@
+
 $(BUILD_DIR)/kernel.bin: $(KERNEL_OBJS) linker.ld
 	@echo "  [LD]    $@"
 	@$(KERNEL_LD) $(KERNEL_LDFLAGS) -o $@ $(KERNEL_OBJS)
-
 
 $(BUILD_DIR)/os-image.img: $(BUILD_DIR)/BOOTX64.EFI $(BUILD_DIR)/kernel.bin font.psf
 	@echo "  [IMG]   $@"
@@ -51,7 +71,6 @@ $(BUILD_DIR)/os-image.img: $(BUILD_DIR)/BOOTX64.EFI $(BUILD_DIR)/kernel.bin font
 	@mcopy -i $@ $(BUILD_DIR)/BOOTX64.EFI ::/EFI/BOOT/BOOTX64.EFI
 	@mcopy -i $@ $(BUILD_DIR)/kernel.bin ::/kernel.bin
 	@mcopy -i $@ font.psf ::/font.psf
-
 
 clean:
 	@echo "  [CLEAN] $(BUILD_DIR)"

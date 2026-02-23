@@ -1,127 +1,78 @@
 #include "kernel/mem/vmm.h"
 #include "kernel/mem/pmm.h"
 #include "drivers/screen.h"
-#include "kernel/cpu/isr.h"    // Needed for registering the handler
-#include "libc/string.h" // For hex_to_ascii
+#include "kernel/cpu/isr.h"
+#include "libc/string.h"
 
-page_directory_t *kernel_directory;
-page_table_t *first_page_table;
+static page_table_t *pml4;
 
-// --- Helpers ---
-void load_page_directory(uint32_t *directory_addr) {
-    __asm__ __volatile__("mov %0, %%cr3" :: "r"(directory_addr));
+void load_page_directory(uint64_t directory_addr) {
+    __asm__ __volatile__("mov %0, %%cr3" :: "r"(directory_addr) : "memory");
 }
 
 void enable_paging() {
-    uint32_t cr0;
+    uint64_t cr0;
     __asm__ __volatile__("mov %%cr0, %0" : "=r"(cr0));
     cr0 |= 0x80000000;
-    __asm__ __volatile__("mov %0, %%cr0" :: "r"(cr0));
+    __asm__ __volatile__("mov %0, %%cr0" :: "r"(cr0) : "memory");
 }
 
 void page_fault_handler(registers_t *regs) {
-    uint32_t faulting_address;
+    (void)regs;
+    uint64_t faulting_address;
     __asm__ __volatile__("mov %%cr2, %0" : "=r" (faulting_address));
 
-    // Error code interpretation
-    // Bit 0: 0 = Not Present, 1 = Protection Violation
-    int not_present = !(regs->err_code & 0x1);
-    int rw = regs->err_code & 0x2;
-    int us = regs->err_code & 0x4;
-    int reserved = regs->err_code & 0x8;
-
-    kprint("\n[PANIC] PAGE FAULT! ( ");
-    if (not_present) kprint("not-present "); // Clearer message
-    if (rw) kprint("read-only ");
-    if (us) kprint("user-mode ");
-    if (reserved) kprint("reserved ");
-    kprint(") at 0x");
-
-    char buf[16];
-    buf[0] = '\0'; // FIX: Initialize buffer to empty string
+    kprint("\n[PANIC] PAGE FAULT at 0x");
+    char buf[32];
     hex_to_ascii(faulting_address, buf);
     kprint(buf);
-    kprint("\n");
+    kprint("\nSystem Halted.\n");
+    while(1) __asm__ __volatile__("hlt");
+}
 
-    kprint("System Halted.\n");
-    __asm__ __volatile__("hlt");
+static page_table_t* get_next_table(page_table_t *current_table, uint64_t index) {
+    if (current_table->entries[index].present) {
+        return (page_table_t*)(current_table->entries[index].frame << 12);
+    }
+
+    page_table_t *new_table = (page_table_t*)pmm_alloc_page();
+    memset((uint8_t*)new_table, 0, 4096);
+
+    current_table->entries[index].frame = (uint64_t)new_table >> 12;
+    current_table->entries[index].present = 1;
+    current_table->entries[index].rw = 1;
+    current_table->entries[index].user = 1;
+
+    return new_table;
+}
+
+void vmm_map_page(uint64_t phys_addr, uint64_t virt_addr, uint64_t flags) {
+    uint64_t pml4_idx = (virt_addr >> 39) & 0x1FF;
+    uint64_t pdpt_idx = (virt_addr >> 30) & 0x1FF;
+    uint64_t pd_idx   = (virt_addr >> 21) & 0x1FF;
+    uint64_t pt_idx   = (virt_addr >> 12) & 0x1FF;
+
+    page_table_t *pdpt = get_next_table(pml4, pml4_idx);
+    page_table_t *pd   = get_next_table(pdpt, pdpt_idx);
+    page_table_t *pt   = get_next_table(pd, pd_idx);
+
+    pt->entries[pt_idx].frame = phys_addr >> 12;
+    pt->entries[pt_idx].present = (flags & 1) ? 1 : 0;
+    pt->entries[pt_idx].rw      = (flags & 2) ? 1 : 0;
+    pt->entries[pt_idx].user    = (flags & 4) ? 1 : 0;
+
+    __asm__ __volatile__("invlpg (%0)" :: "r"(virt_addr) : "memory");
 }
 
 void init_vmm() {
-    // 1. Allocate Directory
-    kernel_directory = (page_directory_t *)pmm_alloc_page();
+    pml4 = (page_table_t*)pmm_alloc_page();
+    memset((uint8_t*)pml4, 0, 4096);
 
-    // Clear directory
-    char *ptr = (char *)kernel_directory;
-    for (int i = 0; i < 4096; i++) ptr[i] = 0;
-
-    // 2. Allocate First Page Table
-    first_page_table = (page_table_t *)pmm_alloc_page();
-
-    // 3. Identity Map 0-4MB
-    for (int i = 0; i < 1024; i++) {
-        first_page_table->entries[i].frame = i;
-        first_page_table->entries[i].present = 1;
-        first_page_table->entries[i].rw = 1;
-        first_page_table->entries[i].user = 0;
+    for (uint64_t i = 0; i < 512; i++) {
+        vmm_map_page(i * 4096, i * 4096, 3);
     }
 
-    // 4. Link Table to Directory
-    kernel_directory->entries[0].table_addr = ((uint32_t)first_page_table) >> 12;
-    kernel_directory->entries[0].present = 1;
-    kernel_directory->entries[0].rw = 1;
-    kernel_directory->entries[0].user = 0;
-
-    // 5. Register Handler
     register_interrupt_handler(14, page_fault_handler);
-
-    // 6. Enable Paging
-    kprint("[VMM] - Virtual Memory Enabled.\n");
-    load_page_directory((uint32_t *)kernel_directory);
-    enable_paging();
-
-}
-
-
-void vmm_map_page(uint32_t phys_addr, uint32_t virt_addr, uint32_t flags) {
-    // 1. Calculate Indices
-    uint32_t pd_index = virt_addr >> 22;
-    uint32_t pt_index = (virt_addr >> 12) & 0x03FF;
-
-    // 2. Check if the Page Table exists
-    // We check the 'present' bit of the directory entry
-    if (kernel_directory->entries[pd_index].present == 0) {
-        // NO TABLE: We must allocate one
-        // CRITICAL: This requires the PMM to return a Low Memory address (< 4MB)
-        // or this pointer will point to unmapped memory and crash.
-        page_table_t *new_table = (page_table_t *)pmm_alloc_page();
-
-        if (!new_table) return; // OOM Safety check
-
-        // Clear it manually to prevent garbage data causing random crashes
-        char *ptr = (char *)new_table;
-        for (int i = 0; i < 4096; i++) ptr[i] = 0;
-
-        // Map the new table into the directory
-        // The table_addr is physical (which pmm_alloc_page returns)
-        kernel_directory->entries[pd_index].table_addr = ((uint32_t)new_table) >> 12;
-        kernel_directory->entries[pd_index].present = 1;
-        kernel_directory->entries[pd_index].rw = 1;
-        kernel_directory->entries[pd_index].user = 1; // Allow user access to table container
-    }
-
-    // 3. Get the table
-    // Since we are identity mapped, the physical address *is* the pointer
-    uint32_t table_phys = kernel_directory->entries[pd_index].table_addr << 12;
-    page_table_t *table = (page_table_t *)table_phys;
-
-    // 4. Map the Page
-    table->entries[pt_index].frame = phys_addr >> 12;
-    table->entries[pt_index].present = (flags & 1) ? 1 : 0;
-    table->entries[pt_index].rw      = (flags & 2) ? 1 : 0;
-    table->entries[pt_index].user    = (flags & 4) ? 1 : 0;
-
-    // 5. Flush TLB
-    // We reload CR3 to force the CPU to see the new mapping
-    load_page_directory((uint32_t *)kernel_directory);
+    load_page_directory((uint64_t)pml4);
+    kprint("[VMM] - 4-Level Paging Initialized.\n");
 }

@@ -1,5 +1,6 @@
 #include "drivers/screen.h"
 #include "kernel/cpu/isr.h"
+#include "kernel/cpu/idt.h"
 #include "drivers/keyboard.h"
 #include "user/shell.h"
 #include "kernel/mem/pmm.h"
@@ -15,15 +16,25 @@ extern uint32_t end;
 __attribute__((ms_abi))
 void main(boot_info_t *boot_info) {
     init_screen(boot_info);
-    kprint("ShitOS 64-bit: Font Rendering Active\n");
-    kprint("This text is rendered using a PSF font bitmask!\n");
 
+    kprint("ShitOS 64-bit: Initializing BOOT\n");
+
+    // 1. Install IDT and ISRs
+    isr_install();
+
+    // 2. Initialize Keyboard
+    init_keyboard();
+
+    kprint("Interrupts and Keyboard initialized.\n");
+
+    // 3. Launch the Shell
+    launch_shell();
+
+    // Idle loop
     while(1) {
         __asm__ __volatile__("hlt");
     }
-
     /*
-    isr_install();
     init_keyboard();
 
     // --- MEMORY INIT ---

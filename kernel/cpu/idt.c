@@ -1,36 +1,34 @@
 #include "kernel/cpu/idt.h"
-#include "kernel/cpu/isr.h"
-#include "drivers/pic.h"       // New include (compiler finds it in 'drivers/')
+#include "drivers/pic.h"
 
-// 1. Define the IDT globally
 idt_gate_t idt[IDT_ENTRIES];
 idt_register_t idt_reg;
 
-// 2. Import the array of pointers from assembly
-extern void (*isr_stub_table[])(void);
-
-void set_idt_gate(int n, uint32_t handler) {
-    idt[n].low_offset = low_16(handler);
-    idt[n].sel = KERNEL_CS;
-    idt[n].always0 = 0;
-    idt[n].flags = 0x8E;
-    idt[n].high_offset = high_16(handler);
+void set_idt_gate(int n, uint64_t handler) {
+    idt[n].offset_low = (uint16_t)(handler & 0xFFFF);
+    idt[n].selector = KERNEL_CS; // 0x08
+    idt[n].ist = 0;
+    idt[n].type_attr = 0x8E; // Interrupt Gate, Privilege 0
+    idt[n].offset_mid = (uint16_t)((handler >> 16) & 0xFFFF);
+    idt[n].offset_high = (uint32_t)((handler >> 32) & 0xFFFFFFFF);
+    idt[n].reserved = 0;
 }
 
 void set_idt() {
-    idt_reg.base = (uint32_t) &idt;
-    idt_reg.limit = IDT_ENTRIES * sizeof(idt_gate_t) - 1;
-    __asm__ __volatile__("lidt (%0)" : : "r" (&idt_reg));
+    idt_reg.base = (uint64_t)&idt;
+    idt_reg.limit = (sizeof(idt_gate_t) * IDT_ENTRIES) - 1;
+    __asm__ __volatile__("lidt %0" : : "m"(idt_reg));
 }
+
+extern uint64_t isr_stub_table[]; // Use uint64_t for the table
 
 void isr_install() {
     set_idt();
 
-    // Install handlers 0-47
     for (int i = 0; i < 48; i++) {
-        set_idt_gate(i, (uint32_t)isr_stub_table[i]);
+        set_idt_gate(i, isr_stub_table[i]); // Pass the 64-bit address
     }
 
-    init_pic(); // Now calls the driver
+    init_pic();
     __asm__ __volatile__("sti");
 }

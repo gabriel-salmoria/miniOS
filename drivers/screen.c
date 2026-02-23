@@ -76,3 +76,20 @@ void kprint(char *message) {
         }
     }
 }
+
+void kprint_backspace() {
+    uint32_t height = 16; /* Default */
+    if (((uint8_t*)font_internal.psf_header)[0] == PSF2_MAGIC0) {
+        height = ((psf2_header_t*)font_internal.psf_header)->height;
+    }
+
+    if (cursor_x >= 8) {
+        cursor_x -= 8;
+        // Fill the 8xHeight area with black pixels
+        for (uint32_t y = 0; y < height; y++) {
+            for (int x = 0; x < 8; x++) {
+                put_pixel(cursor_x + x, cursor_y + y, 0x00000000);
+            }
+        }
+    }
+}
