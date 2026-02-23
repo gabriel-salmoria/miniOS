@@ -26,6 +26,7 @@ KERNEL_OBJS = $(BUILD_DIR)/kernel/main.o \
               $(BUILD_DIR)/kernel/sched/task.o \
               $(BUILD_DIR)/kernel/fs/mbr.o \
               $(BUILD_DIR)/kernel/fs/ext2.o \
+              $(BUILD_DIR)/kernel/cpu/gdt.o \
               $(BUILD_DIR)/arch/x86_64/cpu/interrupt.o \
               $(BUILD_DIR)/arch/x86_64/cpu/switch.o \
               $(BUILD_DIR)/libc/string.o \

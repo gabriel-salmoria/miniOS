@@ -23,29 +23,28 @@ const char sc_ascii[] = {
 };
 
 static void keyboard_callback(registers_t* regs) {
-    (void)regs; // Suppress unused parameter warning
+    (void)regs;
     uint8_t scancode = inb(0x60);
 
-    if (input_complete) return;
-    if (scancode & 0x80) return; // Ignore break codes
+    // If top bit is set, it's a key release (break code)
+    if (scancode & 0x80) return;
 
     if (scancode == BACKSPACE) {
         if (buffer_index > 0) {
-            kprint_backspace(); // Use the new 64-bit helper
-
-            // Buffer Update
+            kprint_backspace();
             buffer_index--;
             key_buffer[buffer_index] = '\0';
         }
-    }
-    else if (scancode == ENTER) {
+    } else if (scancode == ENTER) {
         kprint("\n");
         input_complete = 1;
-    }
-    else {
-        if (scancode > 57) return;
+    } else {
+        // Broaden the check to include more of the sc_ascii table
+        if (scancode >= sizeof(sc_ascii)) return;
 
         char letter = sc_ascii[scancode];
+        if (letter == '?') return; // Ignore unknown keys
+
         char str[2] = {letter, '\0'};
         kprint(str);
 

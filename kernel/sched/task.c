@@ -26,14 +26,15 @@ void create_task(void (*entry)()) {
     uint64_t *stack = (uint64_t*)kmalloc(4096);
     uint64_t *top = stack + 512;
 
-    *(--top) = (uint64_t)entry;
-    *(--top) = 0x202;
-    *(--top) = 0;
-    *(--top) = 0;
-    *(--top) = 0;
-    *(--top) = 0;
-    *(--top) = 0;
-    *(--top) = 0;
+    // Forge the stack for switch_task:
+    *(--top) = (uint64_t)entry;   // RIP
+    *(--top) = 0x202;             // RFLAGS (IF bit set)
+    *(--top) = 0;                 // RBX
+    *(--top) = 0;                 // RBP
+    *(--top) = 0;                 // R12
+    *(--top) = 0;                 // R13
+    *(--top) = 0;                 // R14
+    *(--top) = 0;                 // R15
 
     new_task->rsp = (uint64_t)top;
 
@@ -43,14 +44,25 @@ void create_task(void (*entry)()) {
 }
 
 void schedule() {
-    if (!current_task) return;
+    if (!current_task || !ready_queue) return;
+
+    // Prevent re-entrant scheduling
+    __asm__ __volatile__("cli");
 
     task_t *next = current_task->next;
     if (!next) next = ready_queue;
-    if (next == current_task) return;
+
+    if (next == current_task) {
+        __asm__ __volatile__("sti");
+        return;
+    }
 
     task_t *prev = current_task;
     current_task = next;
 
+    // Switch stacks
     switch_task(&(prev->rsp), current_task->rsp);
+
+    // switch_task returns here for the new task
+    __asm__ __volatile__("sti");
 }

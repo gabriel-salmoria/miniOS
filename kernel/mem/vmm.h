@@ -2,6 +2,7 @@
 #define VMM_H
 
 #include <types.h>
+#include "shared_types.h"
 
 typedef struct {
     uint64_t present    : 1;
@@ -23,7 +24,7 @@ typedef struct {
     page_entry_t entries[512];
 } __attribute__((aligned(4096))) page_table_t;
 
-void init_vmm();
+void init_vmm(boot_info_t *info);
 void vmm_map_page(uint64_t phys_addr, uint64_t virt_addr, uint64_t flags);
 
 #endif

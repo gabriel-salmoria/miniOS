@@ -30,5 +30,4 @@ void isr_install() {
     }
 
     init_pic();
-    __asm__ __volatile__("sti");
 }

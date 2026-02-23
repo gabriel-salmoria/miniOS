@@ -17,12 +17,12 @@ SECTIONS {
         *(.data.*)
     }
     .bss : ALIGN(4) {
+        _bss_start = .;    /* Add this symbol */
         *(COMMON)
         *(.bss)
         *(.bss.*)
+        _bss_end = .;      /* Add this symbol */
     }
-
-    end = .;
     /DISCARD/ : {
         *(.eh_frame)
         *(.note*)

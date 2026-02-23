@@ -15,7 +15,7 @@ void *memcpy(void *dest, const void *src, int n) {
 }
 
 
-void memset(uint8_t *dest, uint8_t val, uint32_t len) {
+void memset(void *dest, uint8_t val, uint64_t len) {
     uint8_t *temp = (uint8_t *)dest;
     for ( ; len != 0; len--) *temp++ = val;
 }
@@ -58,7 +58,7 @@ void reverse(char *s) {
     }
 }
 
-void int_to_ascii(int n, char str[]) {
+void int_to_ascii(int64_t n, char str[]) {
     int i, sign;
     if ((sign = n) < 0) n = -n;
     i = 0;
@@ -72,22 +72,18 @@ void int_to_ascii(int n, char str[]) {
     reverse(str);
 }
 
-void hex_to_ascii(int n, char str[]) {
+void hex_to_ascii(uint64_t n, char str[]) {
+    str[0] = '\0'; // Start with empty string
     append(str, '0');
     append(str, 'x');
-    char zeros = 0;
+    int zeros = 0;
 
-    int32_t tmp;
-    int i;
-    for (i = 28; i > 0; i -= 4) {
-        tmp = (n >> i) & 0xF;
-        if (tmp == 0 && zeros == 0) continue;
+    // Process 64 bits (16 hex chars)
+    for (int i = 60; i >= 0; i -= 4) {
+        uint8_t tmp = (n >> i) & 0xF;
+        if (tmp == 0 && zeros == 0 && i > 0) continue;
         zeros = 1;
-        if (tmp > 0xA) append(str, tmp - 0xA + 'a');
+        if (tmp >= 0xA) append(str, tmp - 0xA + 'a');
         else append(str, tmp + '0');
     }
-
-    tmp = n & 0xF;
-    if (tmp >= 0xA) append(str, tmp - 0xA + 'a');
-    else append(str, tmp + '0');
 }

@@ -78,6 +78,8 @@ isr_stub_table:
 ; --- COMMON HANDLER ---
 extern isr_handler
 
+extern isr_handler
+
 isr_common_stub:
     ; Save all registers
     push rax
@@ -96,10 +98,16 @@ isr_common_stub:
     push r14
     push r15
 
-    mov rdi, rsp          ; Pass registers_t* in RDI (System V ABI)
+    ; --- NEW: Align Stack to 16-bytes ---
+    mov rbp, rsp          ; Save original RSP
+    and rsp, -16          ; Align down to 16-byte boundary
+
+    mov rdi, rbp          ; Pass the original stack (registers_t*) as 1st argument
     call isr_handler
 
-    ; Restore all registers
+    mov rsp, rbp          ; Restore original stack
+    ; ------------------------------------
+
     pop r15
     pop r14
     pop r13
@@ -116,5 +124,5 @@ isr_common_stub:
     pop rbx
     pop rax
 
-    add rsp, 16           ; Clean up error code and int number
-    iretq                 ; Use 64-bit interrupt return
+    add rsp, 16
+    iretq
