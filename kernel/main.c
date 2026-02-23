@@ -8,11 +8,11 @@
 #include "kernel/sched/task.h"
 #include "kernel/fs/ext2.h"
 
-#include "libc/string.h"
+#include <shared_types.h>
 
 extern uint32_t end;
 
-void main() {
+void main(framebuffer_info_t *fb) {
     clear_screen();
     kprint("[MAIN] - ShitOS 32-bit Kernel Initializing...\n\n");
 

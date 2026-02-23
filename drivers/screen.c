@@ -1,92 +1,40 @@
 #include "drivers/screen.h"
-#include "drivers/ports.h"
 
-void kprint_at(char *message, int col, int row) {
-    int offset;
-    if (col >= 0 && row >= 0)
-        offset = get_offset(col, row);
-    else {
-        offset = get_cursor_offset();
-        row = get_offset_row(offset);
-        col = get_offset_col(offset);
-    }
+static framebuffer_info_t *screen_fb = 0;
+static int cursor_x = 0;
+static int cursor_y = 0;
 
-    int i = 0;
-    while (message[i] != 0) {
-        offset = print_char(message[i++], col, row, WHITE_ON_BLACK);
-        row = get_offset_row(offset);
-        col = get_offset_col(offset);
-    }
-}
-
-void kprint(char *message) {
-    kprint_at(message, -1, -1);
+void init_screen(framebuffer_info_t *fb) {
+    screen_fb = fb;
 }
 
 void clear_screen() {
-    int screen_size = MAX_COLS * MAX_ROWS;
-    int i;
-    char *screen = (char *)VIDEO_ADDRESS;
+    if (!screen_fb) return;
 
-    for (i = 0; i < screen_size; i++) {
-        screen[i * 2] = ' ';
-        screen[i * 2 + 1] = WHITE_ON_BLACK;
+    uint32_t total_pixels = screen_fb->width * screen_fb->height;
+    for (uint32_t i = 0; i < total_pixels; i++) {
+        screen_fb->base_address[i] = 0x00000000; // Black
     }
-    set_cursor_offset(get_offset(0, 0));
-}
-
-// --- Private Kernel Helper Functions ---
-
-int get_cursor_offset() {
-    outb(REG_SCREEN_CTRL, 14);
-    int offset = inb(REG_SCREEN_DATA) << 8;
-    outb(REG_SCREEN_CTRL, 15);
-    offset += inb(REG_SCREEN_DATA);
-    return offset * 2;
-}
-
-void set_cursor_offset(int offset) {
-    offset /= 2;
-    outb(REG_SCREEN_CTRL, 14);
-    outb(REG_SCREEN_DATA, (unsigned char)(offset >> 8));
-    outb(REG_SCREEN_CTRL, 15);
-    outb(REG_SCREEN_DATA, (unsigned char)(offset & 0xff));
+    cursor_x = 0;
+    cursor_y = 0;
 }
 
 int print_char(char c, int col, int row, char attr) {
-    unsigned char *vidmem = (unsigned char *) VIDEO_ADDRESS;
-    if (!attr) attr = WHITE_ON_BLACK;
+    // TODO: To print ASCII characters, we must load a bitmap font (e.g., PSF format).
+    // For now, this draws a solid white 8x8 block to indicate text placement.
+    if (!screen_fb) return 0;
 
-    if (col >= MAX_COLS || row >= MAX_ROWS) {
-        vidmem[2 * (MAX_COLS) * (MAX_ROWS)-2] = 'E';
-        vidmem[2 * (MAX_COLS) * (MAX_ROWS)-1] = RED_ON_WHITE;
-        return get_offset(col, row);
+    int px_start_x = col * 8;
+    int px_start_y = row * 8;
+
+    for (int y = 0; y < 8; y++) {
+        for (int x = 0; x < 8; x++) {
+            screen_fb->base_address[(px_start_x + x) + ((px_start_y + y) * screen_fb->pitch)] = 0x00FFFFFF;
+        }
     }
-
-    int offset;
-    if (col >= 0 && row >= 0) offset = get_offset(col, row);
-    else offset = get_cursor_offset();
-
-    if (c == '\n') {
-        row = get_offset_row(offset);
-        offset = get_offset(0, row + 1);
-    } else {
-        vidmem[offset] = c;
-        vidmem[offset + 1] = attr;
-        offset += 2;
-    }
-    set_cursor_offset(offset);
-    return offset;
+    return 0; // Update offset math later
 }
 
-int get_offset(int col, int row) {
-    return 2 * (row * MAX_COLS + col);
-}
-
-int get_offset_row(int offset) {
-    return offset / (2 * MAX_COLS);
-}
-
-int get_offset_col(int offset) {
-    return (offset - (get_offset_row(offset) * 2 * MAX_COLS)) / 2;
+void kprint(char *message) {
+    // Stub: Requires font rendering logic to increment cursor_x/y properly
 }

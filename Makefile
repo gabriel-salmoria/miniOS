@@ -1,5 +1,5 @@
 BOOT_CC = x86_64-w64-mingw32-gcc
-BOOT_CFLAGS = -Wall -Wextra -m64 -ffreestanding -fshort-wchar -fPIC -fPIE -mno-red-zone -fno-stack-protector
+BOOT_CFLAGS = -Wall -Wextra -m64 -ffreestanding -fshort-wchar -fPIC -fPIE -mno-red-zone -fno-stack-protector -Iinclude
 BOOT_LDFLAGS = -nostdlib -Wl,-T,linker.ld -Wl,--image-base,0x400000 -Wl,-mi386pep -Wl,--subsystem,10 -Wl,-e,efi_main
 
 QEMU = qemu-system-x86_64
