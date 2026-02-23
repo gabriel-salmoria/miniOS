@@ -1,40 +1,54 @@
 #include "drivers/screen.h"
 
-static framebuffer_info_t *screen_fb = 0;
+static framebuffer_info_t fb_internal;
+static framebuffer_info_t *fb = &fb_internal;
 static int cursor_x = 0;
 static int cursor_y = 0;
 
-void init_screen(framebuffer_info_t *fb) {
-    screen_fb = fb;
+void init_screen(framebuffer_info_t *info) {
+    fb_internal = *info;
+    clear_screen();
 }
 
 void clear_screen() {
-    if (!screen_fb) return;
-
-    uint32_t total_pixels = screen_fb->width * screen_fb->height;
-    for (uint32_t i = 0; i < total_pixels; i++) {
-        screen_fb->base_address[i] = 0x00000000; // Black
+    if (!fb) return;
+    for (uint32_t i = 0; i < fb->width * fb->height; i++) {
+        fb->base_address[i] = 0x00000000;
     }
     cursor_x = 0;
     cursor_y = 0;
 }
 
-int print_char(char c, int col, int row, char attr) {
-    // TODO: To print ASCII characters, we must load a bitmap font (e.g., PSF format).
-    // For now, this draws a solid white 8x8 block to indicate text placement.
-    if (!screen_fb) return 0;
+void put_pixel(int x, int y, uint32_t color) {
+    fb->base_address[x + (y * fb->pitch)] = color;
+}
 
-    int px_start_x = col * 8;
-    int px_start_y = row * 8;
-
-    for (int y = 0; y < 8; y++) {
-        for (int x = 0; x < 8; x++) {
-            screen_fb->base_address[(px_start_x + x) + ((px_start_y + y) * screen_fb->pitch)] = 0x00FFFFFF;
+void print_char(char c, int x, int y, uint32_t color) {
+    // Basic 8x8 bitmask rendering (Stub: currently draws a solid square)
+    // Replace with PSF font parsing logic later
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            put_pixel(x + j, y + i, color);
         }
     }
-    return 0; // Update offset math later
 }
 
 void kprint(char *message) {
-    // Stub: Requires font rendering logic to increment cursor_x/y properly
+    if (!fb) return;
+
+    for (int i = 0; message[i] != 0; i++) {
+        if (message[i] == '\n') {
+            cursor_x = 0;
+            cursor_y += 12; // Character height + padding
+            continue;
+        }
+
+        print_char(message[i], cursor_x, cursor_y, 0xFFFFFFFF);
+        cursor_x += 8; // Character width
+
+        if (cursor_x + 8 > (int)fb->width) {
+            cursor_x = 0;
+            cursor_y += 12;
+        }
+    }
 }

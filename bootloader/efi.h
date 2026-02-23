@@ -8,6 +8,17 @@ typedef uint64_t EFI_STATUS;
 
 #define EFI_SUCCESS 0
 
+#define EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID \
+    {0x9042a9de, 0x23dc, 0x4a38, {0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a}}
+
+#define EFI_LOADED_IMAGE_PROTOCOL_GUID \
+    {0x5B1B31A1, 0x9562, 0x11d2, {0x8E, 0x3F, 0x00, 0xA0, 0xC9, 0x69, 0x72, 0x3B}}
+
+#define EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID \
+    {0x0964e5b22, 0x6459, 0x11d2, {0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b}}
+
+#define EFI_FILE_MODE_READ 0x0000000000000001
+
 typedef struct {
     uint32_t Data1;
     uint16_t Data2;
@@ -77,10 +88,53 @@ typedef struct EFI_GRAPHICS_OUTPUT_PROTOCOL {
 } EFI_GRAPHICS_OUTPUT_PROTOCOL;
 
 typedef struct {
+    uint32_t Revision;
+    EFI_HANDLE ParentHandle;
+    struct EFI_SYSTEM_TABLE *SystemTable;
+    EFI_HANDLE DeviceHandle;
+    void *FilePath;
+    void *Reserved;
+    uint32_t LoadOptionsSize;
+    void *LoadOptions;
+    void *ImageBase;
+    uint64_t ImageSize;
+} EFI_LOADED_IMAGE_PROTOCOL;
+
+typedef struct EFI_FILE_PROTOCOL {
+    uint64_t Revision;
+    EFI_STATUS (*Open)(struct EFI_FILE_PROTOCOL *This, struct EFI_FILE_PROTOCOL **NewHandle, uint16_t *FileName, uint64_t OpenMode, uint64_t Attributes);
+    EFI_STATUS (*Close)(struct EFI_FILE_PROTOCOL *This);
+    EFI_STATUS (*Delete)(struct EFI_FILE_PROTOCOL *This);
+    EFI_STATUS (*Read)(struct EFI_FILE_PROTOCOL *This, uint64_t *BufferSize, void *Buffer);
+} EFI_FILE_PROTOCOL;
+
+typedef struct EFI_SIMPLE_FILE_SYSTEM_PROTOCOL {
+    uint64_t Revision;
+    EFI_STATUS (*OpenVolume)(struct EFI_SIMPLE_FILE_SYSTEM_PROTOCOL *This, EFI_FILE_PROTOCOL **Root);
+} EFI_SIMPLE_FILE_SYSTEM_PROTOCOL;
+
+typedef enum {
+    AllocateAnyPages,
+    AllocateMaxAddress,
+    AllocateAddress,
+    MaxAllocateType
+} EFI_ALLOCATE_TYPE;
+
+typedef enum {
+    EfiReservedMemoryType,
+    EfiLoaderCode,
+    EfiLoaderData,
+    EfiBootServicesCode,
+    EfiBootServicesData,
+    EfiConventionalMemory,
+    EfiMaxMemoryType
+} EFI_MEMORY_TYPE;
+
+typedef struct {
     EFI_TABLE_HEADER Hdr;
     void *RaiseTPL;
     void *RestoreTPL;
-    void *AllocatePages;
+    EFI_STATUS (*AllocatePages)(EFI_ALLOCATE_TYPE Type, EFI_MEMORY_TYPE MemoryType, uint64_t Pages, uint64_t *Memory);
     void *FreePages;
     EFI_STATUS (*GetMemoryMap)(uint64_t *MemoryMapSize, void *MemoryMap, uint64_t *MapKey, uint64_t *DescriptorSize, uint32_t *DescriptorVersion);
     void *AllocatePool;
@@ -94,7 +148,7 @@ typedef struct {
     void *InstallProtocolInterface;
     void *ReinstallProtocolInterface;
     void *UninstallProtocolInterface;
-    void *HandleProtocol;
+    EFI_STATUS (*HandleProtocol)(EFI_HANDLE Handle, EFI_GUID *Protocol, void **Interface);
     void *Reserved;
     void *RegisterProtocolNotify;
     EFI_STATUS (*LocateHandle)(uint32_t SearchType, EFI_GUID *Protocol, void *SearchKey, uint64_t *BufferSize, EFI_HANDLE *Buffer);
@@ -118,7 +172,7 @@ typedef struct {
     EFI_STATUS (*LocateProtocol)(EFI_GUID *Protocol, void *Registration, void **Interface);
 } EFI_BOOT_SERVICES;
 
-typedef struct {
+typedef struct EFI_SYSTEM_TABLE {
     EFI_TABLE_HEADER Hdr;
     uint16_t *FirmwareVendor;
     uint32_t FirmwareRevision;
@@ -131,8 +185,5 @@ typedef struct {
     void *RuntimeServices;
     EFI_BOOT_SERVICES *BootServices;
 } EFI_SYSTEM_TABLE;
-
-#define EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID \
-    {0x9042a9de, 0x23dc, 0x4a38, {0x96, 0xfb, 0x7a, 0xde, 0xd0, 0x80, 0x51, 0x6a}}
 
 #endif

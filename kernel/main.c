@@ -12,10 +12,13 @@
 
 extern uint32_t end;
 
+__attribute__((ms_abi))
 void main(framebuffer_info_t *fb) {
-    clear_screen();
+    init_screen(fb);
     kprint("[MAIN] - ShitOS 32-bit Kernel Initializing...\n\n");
 
+
+    /*
     isr_install();
     init_keyboard();
 
@@ -40,10 +43,12 @@ void main(framebuffer_info_t *fb) {
     // Create the Shell as PID 2
     create_task(launch_shell);
 
+    */
+
 
     // Enable Interrupts to start the Scheduler
     // (The Timer IRQ will now periodically force context switches)
-    __asm__ __volatile__("sti");
+    // __asm__ __volatile__("sti");
 
     // --- IDLE LOOP ---
     // This is where main() goes to die. It just waits.
