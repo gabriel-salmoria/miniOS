@@ -2,6 +2,7 @@
 #define SHARED_TYPES_H
 
 #include <types.h>
+#include "psf.h"
 
 typedef struct {
     uint32_t *base_address;
@@ -10,5 +11,10 @@ typedef struct {
     uint32_t height;
     uint32_t pitch;
 } framebuffer_info_t;
+
+typedef struct {
+    framebuffer_info_t *fb;
+    font_t *font;
+} boot_info_t;
 
 #endif

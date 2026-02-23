@@ -41,7 +41,8 @@ $(BUILD_DIR)/kernel.bin: $(KERNEL_OBJS) linker.ld
 	@echo "  [LD]    $@"
 	@$(KERNEL_LD) $(KERNEL_LDFLAGS) -o $@ $(KERNEL_OBJS)
 
-$(BUILD_DIR)/os-image.img: $(BUILD_DIR)/BOOTX64.EFI $(BUILD_DIR)/kernel.bin
+
+$(BUILD_DIR)/os-image.img: $(BUILD_DIR)/BOOTX64.EFI $(BUILD_DIR)/kernel.bin font.psf
 	@echo "  [IMG]   $@"
 	@dd if=/dev/zero of=$@ bs=1M count=64 status=none
 	@mformat -i $@ -F ::
@@ -49,6 +50,8 @@ $(BUILD_DIR)/os-image.img: $(BUILD_DIR)/BOOTX64.EFI $(BUILD_DIR)/kernel.bin
 	@mmd -i $@ ::/EFI/BOOT
 	@mcopy -i $@ $(BUILD_DIR)/BOOTX64.EFI ::/EFI/BOOT/BOOTX64.EFI
 	@mcopy -i $@ $(BUILD_DIR)/kernel.bin ::/kernel.bin
+	@mcopy -i $@ font.psf ::/font.psf
+
 
 clean:
 	@echo "  [CLEAN] $(BUILD_DIR)"

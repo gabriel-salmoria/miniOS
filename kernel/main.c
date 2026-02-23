@@ -13,10 +13,14 @@
 extern uint32_t end;
 
 __attribute__((ms_abi))
-void main(framebuffer_info_t *fb) {
-    init_screen(fb);
-    kprint("[MAIN] - ShitOS 32-bit Kernel Initializing...\n\n");
+void main(boot_info_t *boot_info) {
+    init_screen(boot_info);
+    kprint("ShitOS 64-bit: Font Rendering Active\n");
+    kprint("This text is rendered using a PSF font bitmask!\n");
 
+    while(1) {
+        __asm__ __volatile__("hlt");
+    }
 
     /*
     isr_install();
