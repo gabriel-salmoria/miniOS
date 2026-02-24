@@ -1,5 +1,4 @@
 #include "kernel/cpu/idt.h"
-#include "drivers/pic.h"
 
 idt_gate_t idt[IDT_ENTRIES];
 idt_register_t idt_reg;
@@ -29,5 +28,4 @@ void isr_install() {
         set_idt_gate(i, isr_stub_table[i]); // Pass the 64-bit address
     }
 
-    init_pic();
 }

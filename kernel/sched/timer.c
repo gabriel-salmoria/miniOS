@@ -1,6 +1,6 @@
 #include "kernel/sched/timer.h"
 #include "kernel/sched/task.h"
-#include "drivers/apic.h"
+#include "drivers/apic/apic.h"
 
 #define LAPIC_TIMER_DIV  0x03E0
 #define LAPIC_TIMER_INIT 0x0380

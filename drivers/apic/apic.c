@@ -1,6 +1,6 @@
-#include "drivers/apic.h"
+#include "drivers/apic/apic.h"
 #include "kernel/acpi/acpi.h"
-#include "drivers/ports.h"
+#include "drivers/apic/ports.h"
 
 #define LAPIC_ID         0x0020
 #define LAPIC_EOI        0x00B0

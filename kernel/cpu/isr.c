@@ -1,6 +1,5 @@
 #include "kernel/cpu/isr.h"
-#include "drivers/ports.h"
-#include "drivers/apic.h"
+#include "drivers/apic/apic.h"
 
 isr_t interrupt_handlers[256];
 

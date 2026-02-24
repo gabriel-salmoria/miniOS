@@ -11,8 +11,8 @@
 #include <shared_types.h>
 #include "kernel/sched/timer.h"
 #include "kernel/acpi/acpi.h"
-#include "drivers/apic.h"
-#include "drivers/ioapic.h"
+#include "drivers/apic/apic.h"
+#include "drivers/apic/ioapic.h"
 
 extern uint64_t _bss_start;
 extern uint64_t _bss_end;
