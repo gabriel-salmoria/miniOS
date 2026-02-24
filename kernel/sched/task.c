@@ -63,6 +63,10 @@ void create_user_task(void (*entry)()) {
     new_task->state = TASK_READY;
     new_task->next = 0;
 
+    new_task->fd_table[0] = vfs_stdin;
+    new_task->fd_table[1] = vfs_stdout;
+    for (int i = 2; i < MAX_FD; i++) new_task->fd_table[i] = 0;
+
     // Kernel stack for interrupt handling
     uint64_t *kernel_stack = (uint64_t*)kmalloc(4096);
     uint64_t *k_top = (uint64_t*)(((uint64_t)kernel_stack + 4096) & -16ULL);

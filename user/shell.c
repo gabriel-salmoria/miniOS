@@ -1,28 +1,17 @@
 #include "user/shell.h"
+#include "libc/syscall.h"
 #include "libc/string.h"
 
-static inline uint64_t do_syscall(uint64_t id, uint64_t arg1, uint64_t arg2, uint64_t arg3) {
-    register uint64_t rax __asm__("rax") = id;
-    register uint64_t rdi __asm__("rdi") = arg1;
-    register uint64_t rsi __asm__("rsi") = arg2;
-    register uint64_t rdx __asm__("rdx") = arg3;
-
-    __asm__ __volatile__(
-        "syscall"
-        : "+r"(rax)
-        : "r"(rdi), "r"(rsi), "r"(rdx)
-        : "rcx", "r11", "memory"
-    );
-
-    return rax;
-}
-
 void user_print(char *str) {
-    do_syscall(0, (uint64_t)str, 0, 0);
+    // Write string to FD 1 (stdout)
+    write(1, str, strlen(str));
 }
 
 char user_getchar() {
-    return (char)do_syscall(1, 0, 0, 0);
+    char c = 0;
+    // Read 1 byte from FD 0 (stdin)
+    read(0, &c, 1);
+    return c;
 }
 
 void launch_shell() {
@@ -47,7 +36,7 @@ void launch_shell() {
         } else if (c == '\b') {
             if (idx > 0) idx--;
             // Handle backspace logic later via TTY system
-        } else {
+        } else if (c != 0) { // Ensure we don't print null bytes
             if (idx < 255) {
                 input[idx++] = c;
                 char str[2] = {c, 0};

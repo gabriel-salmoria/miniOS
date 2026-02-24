@@ -1,6 +1,7 @@
 #include "drivers/screen.h"
 #include "kernel/cpu/isr.h"
 #include "drivers/keyboard.h"
+#include "kernel/fs/vfs.h"
 #include "user/shell.h"
 #include "kernel/mem/pmm.h"
 #include "kernel/mem/vmm.h"
@@ -28,6 +29,8 @@ static void init_memory(boot_info_t *boot_info) {
     pmm_init(kernel_end + 0x100000, 0x02000000);
     init_vmm();
     heap_init();
+
+    vfs_init();
 }
 
 static void init_system(boot_info_t *boot_info) {
@@ -35,6 +38,7 @@ static void init_system(boot_info_t *boot_info) {
     isr_install();
 
     syscall_init();
+
 
     // Parse ACPI and initialize APIC instead of legacy PIC
     acpi_init(boot_info->rsdp);

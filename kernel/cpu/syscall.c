@@ -1,9 +1,8 @@
 #include "kernel/cpu/syscall.h"
 #include "kernel/cpu/msr.h"
 #include "kernel/cpu/gdt.h"
-#include "drivers/screen.h"
 #include "kernel/mem/heap.h"
-#include "drivers/keyboard.h"
+#include "kernel/sched/task.h"
 
 #define MSR_KERNEL_GS_BASE 0xC0000102
 
@@ -28,13 +27,23 @@ void syscall_init() {
     wrmsr(MSR_KERNEL_GS_BASE, (uint64_t)&gs_local);
 }
 
+
+// id 0 = sys_write, id 1 = sys_read
 uint64_t syscall_handler(uint64_t id, uint64_t arg1, uint64_t arg2, uint64_t arg3) {
-    if (id == 0) {
-        kprint((char*)arg1);
-        return 0;
-    } else if (id == 1) {
-        return kbd_getchar();
+    int fd = arg1;
+    uint8_t *buf = (uint8_t*)arg2;
+    uint32_t count = arg3;
+
+    if (fd < 0 || fd >= MAX_FD || !current_task->fd_table[fd]) return -1;
+
+    vfs_node_t *node = current_task->fd_table[fd];
+
+    if (id == 0 && node->write) {
+        return node->write(node, 0, count, buf);
+    } else if (id == 1 && node->read) {
+        return node->read(node, 0, count, buf);
     }
+
     return -1;
 }
 
