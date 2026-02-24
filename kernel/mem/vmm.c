@@ -91,14 +91,14 @@ void vmm_map_huge_page(uint64_t phys_addr, uint64_t virt_addr, uint64_t flags) {
     pd->entries[pd_idx].user    = (flags & 4) ? 1 : 0;
 }
 
-void init_vmm(boot_info_t *info) {
+void init_vmm() {
     pml4 = (page_table_t*)pmm_alloc_page();
     memset((uint8_t*)pml4, 0, 4096);
 
     // Identity map 4GB to cover Kernel, Stack, and Framebuffer
     for (uint64_t i = 0; i < 2048; i++) {
         uint64_t addr = i * 0x200000;
-        vmm_map_huge_page(addr, addr, 3);
+        vmm_map_huge_page(addr, addr, 7);
     }
 
     register_interrupt_handler(14, page_fault_handler);

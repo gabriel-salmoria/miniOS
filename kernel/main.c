@@ -13,6 +13,7 @@
 #include "kernel/acpi/acpi.h"
 #include "drivers/apic/apic.h"
 #include "drivers/apic/ioapic.h"
+#include "kernel/cpu/syscall.h"
 
 extern uint64_t _bss_start;
 extern uint64_t _bss_end;
@@ -25,13 +26,15 @@ static void init_bss() {
 static void init_memory(boot_info_t *boot_info) {
     uint64_t kernel_end = (uint64_t)&_bss_end;
     pmm_init(kernel_end + 0x100000, 0x02000000);
-    init_vmm(boot_info);
+    init_vmm();
     heap_init();
 }
 
 static void init_system(boot_info_t *boot_info) {
     init_gdt();
     isr_install();
+
+    syscall_init();
 
     // Parse ACPI and initialize APIC instead of legacy PIC
     acpi_init(boot_info->rsdp);
@@ -53,7 +56,7 @@ void main(boot_info_t *boot_info) {
     init_memory(boot_info);
 
     tasking_init();
-    create_task(launch_shell);
+    create_user_task(launch_shell);
 
     kprint("System Online. Enabling Interrupts.\n");
     __asm__ __volatile__("sti");

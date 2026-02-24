@@ -10,13 +10,14 @@ typedef enum {
 
 typedef struct task {
     uint64_t rsp;
+    uint64_t kernel_stack_top; // NEW: Track the safe Ring 0 stack
     uint64_t cr3;
     uint32_t pid;
     task_state_t state;
     struct task *next;
-} task_t;
+} task_t;extern task_t * volatile current_task;
 
-extern task_t * volatile current_task;
+
 extern task_t * volatile ready_queue;
 
 void tasking_init();

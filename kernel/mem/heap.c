@@ -16,7 +16,7 @@ void heap_init() {
 
     while (current_addr < end_addr) {
         void *phys_frame = pmm_alloc_page();
-        vmm_map_page((uint64_t)phys_frame, current_addr, 3);
+        vmm_map_page((uint64_t)phys_frame, current_addr, 7);
         current_addr += 4096;
     }
 

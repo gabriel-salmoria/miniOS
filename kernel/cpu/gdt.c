@@ -24,8 +24,8 @@ void init_gdt() {
     gdt[0] = 0;
     set_gdt_entry(1, 0, 0xFFFFF, 0x9A, 0xA); // KERNEL_CS
     set_gdt_entry(2, 0, 0xFFFFF, 0x92, 0xC); // KERNEL_DS
-    set_gdt_entry(3, 0, 0xFFFFF, 0xFA, 0xA); // USER_CS (DPL 3)
-    set_gdt_entry(4, 0, 0xFFFFF, 0xF2, 0xC); // USER_DS (DPL 3)
+    set_gdt_entry(3, 0, 0xFFFFF, 0xF2, 0xC); // USER_DS (Swapped)
+    set_gdt_entry(4, 0, 0xFFFFF, 0xFA, 0xA); // USER_CS (Swapped)
 
     uint64_t tss_base = (uint64_t)&tss;
     gdt[5] = (sizeof(tss_t) - 1) | ((tss_base & 0xFFFFFF) << 16) |

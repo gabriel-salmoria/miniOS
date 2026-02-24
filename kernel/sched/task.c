@@ -1,5 +1,6 @@
 #include "kernel/sched/task.h"
 #include "kernel/mem/heap.h"
+#include "kernel/cpu/syscall.h"
 
 task_t * volatile current_task = 0;
 task_t * volatile ready_queue = 0;
@@ -14,6 +15,7 @@ void tasking_init() {
     current_task->state = TASK_READY;
     current_task->rsp = 0;
     current_task->next = 0;
+    current_task->kernel_stack_top = 0;
     ready_queue = current_task;
 }
 
@@ -28,22 +30,25 @@ void create_task(void (*entry)()) {
     new_task->pid = next_pid++;
     new_task->next = 0;
 
-    uint64_t *stack = (uint64_t*)kmalloc(4096);
-    // Align top to 16 bytes
-    uint64_t *top = (uint64_t*)(((uint64_t)stack + 4096) & -16ULL);
+    uint64_t *kernel_stack = (uint64_t*)kmalloc(4096);
+    uint64_t k_top = (((uint64_t)kernel_stack + 4096) & -16ULL);
+
+    new_task->kernel_stack_top = k_top; // Save it for context switches
+
+    uint64_t *ptr = (uint64_t*)k_top;
 
     // Forge the stack frame
-    *(--top) = 0;                 // CRITICAL: Dummy Return Address for ABI Alignment
-    *(--top) = (uint64_t)entry;   // RIP for switch_task's 'ret'
-    *(--top) = 0x202;             // RFLAGS
-    *(--top) = 0;                 // rbx
-    *(--top) = 0;                 // rbp
-    *(--top) = 0;                 // r12
-    *(--top) = 0;                 // r13
-    *(--top) = 0;                 // r14
-    *(--top) = 0;                 // r15
+    *(--ptr) = 0;                 // CRITICAL: Dummy Return Address for ABI Alignment
+    *(--ptr) = (uint64_t)entry;   // RIP for switch_task's 'ret'
+    *(--ptr) = 0x202;             // RFLAGS
+    *(--ptr) = 0;                 // rbx
+    *(--ptr) = 0;                 // rbp
+    *(--ptr) = 0;                 // r12
+    *(--ptr) = 0;                 // r13
+    *(--ptr) = 0;                 // r14
+    *(--ptr) = 0;                 // r15
 
-    new_task->rsp = (uint64_t)top;
+    new_task->rsp = (uint64_t)ptr;
 
     task_t *temp = ready_queue;
     while(temp->next) temp = temp->next;
@@ -125,6 +130,11 @@ void schedule() {
 
     task_t *prev = current_task;
     current_task = next;
+
+    // NEW: Update hardware pointers to this task's kernel stack
+    if (current_task->kernel_stack_top != 0) {
+        set_kernel_stack(current_task->kernel_stack_top);
+    }
     switch_task(&(prev->rsp), current_task->rsp);
 
     __asm__ __volatile__("sti");
