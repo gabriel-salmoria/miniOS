@@ -105,6 +105,30 @@ void unblock_all() {
     }
 }
 
+void exit_task() {
+    if (!current_task || current_task == ready_queue) return; // Don't kill the main kernel task
+
+    __asm__ __volatile__("cli");
+
+    // Remove from linked list
+    task_t *temp = ready_queue;
+    while (temp->next && temp->next != current_task) {
+        temp = temp->next;
+    }
+
+    if (temp->next == current_task) {
+        temp->next = current_task->next;
+    }
+
+    // Free resources
+    kfree((void*)current_task->kernel_stack_top - 4096);
+    // Note: You will also need to free the user stack and CR3 here later
+    kfree(current_task);
+
+    current_task = 0; // Force scheduler to pick a new task
+    schedule();
+}
+
 void schedule() {
     if (!current_task || !ready_queue) return;
     __asm__ __volatile__("cli");

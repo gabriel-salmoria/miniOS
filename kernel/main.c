@@ -24,7 +24,7 @@ static void init_bss() {
     memset(&_bss_start, 0, bss_size);
 }
 
-static void init_memory(boot_info_t *boot_info) {
+static void init_memory() {
     uint64_t kernel_end = (uint64_t)&_bss_end;
     pmm_init(kernel_end + 0x100000, 0x02000000);
     init_vmm();
@@ -57,7 +57,7 @@ void main(boot_info_t *boot_info) {
     kprint("ShitOS 64-bit: Kernel Started\n");
 
     init_system(boot_info);
-    init_memory(boot_info);
+    init_memory();
 
     tasking_init();
     create_user_task(launch_shell);

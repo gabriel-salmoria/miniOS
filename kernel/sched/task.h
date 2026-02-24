@@ -35,5 +35,6 @@ void create_user_task(void (*entry)());
 void schedule();
 void block_task();
 void unblock_all();
+void exit_task();
 
 #endif

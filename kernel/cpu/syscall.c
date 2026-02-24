@@ -28,20 +28,48 @@ void syscall_init() {
 }
 
 
-// id 0 = sys_write, id 1 = sys_read
 uint64_t syscall_handler(uint64_t id, uint64_t arg1, uint64_t arg2, uint64_t arg3) {
-    int fd = arg1;
-    uint8_t *buf = (uint8_t*)arg2;
-    uint32_t count = arg3;
+    if (id == 0 || id == 1) {
+        int fd = arg1;
+        uint8_t *buf = (uint8_t*)arg2;
+        uint32_t count = arg3;
 
-    if (fd < 0 || fd >= MAX_FD || !current_task->fd_table[fd]) return -1;
+        if (fd < 0 || fd >= MAX_FD || !current_task->fd_table[fd]) return -1;
+        vfs_node_t *node = current_task->fd_table[fd];
 
-    vfs_node_t *node = current_task->fd_table[fd];
+        if (id == 0 && node->write) return node->write(node, 0, count, buf);
+        if (id == 1 && node->read) return node->read(node, 0, count, buf);
+    }
+    else if (id == 2) {
+        exit_task();
+        return 0;
+    }
+    else if (id == 3) {
+        schedule();
+        return 0;
+    }
+    else if (id == 4) { // sys_open
+        const char *path = (const char*)arg1;
+        vfs_node_t *node = vfs_open(path);
+        if (!node) return -1;
 
-    if (id == 0 && node->write) {
-        return node->write(node, 0, count, buf);
-    } else if (id == 1 && node->read) {
-        return node->read(node, 0, count, buf);
+        for (int i = 0; i < MAX_FD; i++) {
+            if (!current_task->fd_table[i]) {
+                current_task->fd_table[i] = node;
+                return i;
+            }
+        }
+        return -1;
+    }
+    else if (id == 5) { // sys_close
+        int fd = arg1;
+        if (fd < 0 || fd >= MAX_FD || !current_task->fd_table[fd]) return -1;
+
+        vfs_node_t *node = current_task->fd_table[fd];
+        if (node->close) node->close(node);
+
+        current_task->fd_table[fd] = 0;
+        return 0;
     }
 
     return -1;

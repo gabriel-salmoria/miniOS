@@ -25,3 +25,20 @@ int write(int fd, const void *buf, uint32_t count) {
 int read(int fd, void *buf, uint32_t count) {
     return (int)do_syscall(1, (uint64_t)fd, (uint64_t)buf, (uint64_t)count);
 }
+
+void exit(int status) {
+    do_syscall(2, (uint64_t)status, 0, 0);
+    while(1); // Catch in case of failure
+}
+
+void yield() {
+    do_syscall(3, 0, 0, 0);
+}
+
+int open(const char *path) {
+    return (int)do_syscall(4, (uint64_t)path, 0, 0);
+}
+
+int close(int fd) {
+    return (int)do_syscall(5, (uint64_t)fd, 0, 0);
+}
