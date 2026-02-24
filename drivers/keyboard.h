@@ -7,5 +7,5 @@ void print_letter(uint8_t scancode);
 void init_keyboard();
 int is_input_complete();
 void get_keyboard_input(char *target_buffer);
-
+char kbd_getchar();
 #endif

@@ -18,8 +18,8 @@ void init_timer() {
     // Divide by 16
     apic_write(LAPIC_TIMER_DIV, 0x03);
 
-    // Initial count (arbitrary base, roughly 10-20ms in QEMU)
-    apic_write(LAPIC_TIMER_INIT, 10000000);
+    // Lower this value to increase tick rate (e.g., 100,000 or 1,000,000)
+    apic_write(LAPIC_TIMER_INIT, 1000000);
 
     register_interrupt_handler(32, timer_callback);
 }

@@ -4,29 +4,34 @@
 #include "libc/string.h"
 
 void launch_shell() {
-    kprint("\n[ShitOS Shell - Type 'halt' or 'clear']\n> ");
+    kprint("\n[ShitOS Shell]\n> ");
 
-    char input_buffer[256];
+    char input[256];
+    int idx = 0;
 
     while (1) {
-        if (is_input_complete()) {
-            get_keyboard_input(input_buffer);
+        char c = kbd_getchar();
 
-            if (strcmp(input_buffer, "halt") == 0) {
-                kprint("Stopping CPU. Bye!\n");
-                __asm__ __volatile__("hlt");
+        if (c == '\n') {
+            kprint("\n");
+            input[idx] = '\0';
+
+            if (strcmp(input, "clear") == 0) {
+                // handle clear
             }
-            else if (strcmp(input_buffer, "clear") == 0) {
-                clear_screen();
-                kprint("> ");
+
+            idx = 0;
+            kprint("> ");
+        } else if (c == '\b') {
+            if (idx > 0) {
+                idx--;
+                // Handle backspace visual removal here
             }
-            else if (strcmp(input_buffer, "help") == 0) {
-                kprint("Commands: halt, clear, help\n> ");
-            }
-            else {
-                kprint("Unknown command: ");
-                kprint(input_buffer);
-                kprint("\n> ");
+        } else {
+            if (idx < 255) {
+                input[idx++] = c;
+                char str[2] = {c, 0};
+                kprint(str);
             }
         }
     }

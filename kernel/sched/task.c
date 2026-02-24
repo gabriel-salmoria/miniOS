@@ -1,24 +1,20 @@
 #include "kernel/sched/task.h"
 #include "kernel/mem/heap.h"
-#include "drivers/screen.h"
-#include "libc/string.h"
 
-task_t * current_task = 0; // Actual definition
-task_t * ready_queue = 0;
+task_t * volatile current_task = 0;
+task_t * volatile ready_queue = 0;
 uint32_t next_pid = 1;
 
-extern void switch_task(uint64_t *old_rsp, uint64_t new_rsp);
-
-// Define a static task for the kernel main so current_task is never NULL
 static task_t main_task;
+extern void switch_task(uint64_t *old_rsp, uint64_t new_rsp);
 
 void tasking_init() {
     current_task = &main_task;
     current_task->pid = next_pid++;
+    current_task->state = TASK_READY;
     current_task->rsp = 0;
     current_task->next = 0;
     ready_queue = current_task;
-    kprint("[SCHED] - Multitasking Initialized.\n");
 }
 
 void create_task(void (*entry)()) {
@@ -26,7 +22,6 @@ void create_task(void (*entry)()) {
 
     // NEW: Stop the system if the heap is broken
     if (!new_task) {
-        kprint("\n[PANIC] kmalloc failed in create_task!\n");
         while(1) __asm__ __volatile__("hlt");
     }
 
@@ -55,20 +50,49 @@ void create_task(void (*entry)()) {
     temp->next = new_task;
 }
 
+void block_task() {
+    if (current_task) current_task->state = TASK_BLOCKED;
+    schedule();
+}
+
+void unblock_all() {
+    task_t *temp = ready_queue;
+    while (temp) {
+        temp->state = TASK_READY;
+        temp = temp->next;
+    }
+}
+
 void schedule() {
     if (!current_task || !ready_queue) return;
+    __asm__ __volatile__("cli");
 
     task_t *next = current_task->next;
-    if (!next) next = ready_queue;
-    if (next == current_task) return;
 
-    __asm__ __volatile__("cli");
+    while (1) {
+        if (!next) next = ready_queue;
+        if (next->state == TASK_READY) break;
+
+        if (next == current_task) {
+            if (current_task->state == TASK_BLOCKED) {
+                // All tasks blocked. Sleep until next interrupt.
+                __asm__ __volatile__("sti\n\thlt\n\tcli");
+                next = current_task->next;
+                continue;
+            }
+            break;
+        }
+        next = next->next;
+    }
+
+    if (next == current_task) {
+        __asm__ __volatile__("sti");
+        return;
+    }
 
     task_t *prev = current_task;
     current_task = next;
-
     switch_task(&(prev->rsp), current_task->rsp);
 
-    // This only runs when THIS task is resumed
     __asm__ __volatile__("sti");
 }
