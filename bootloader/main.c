@@ -9,6 +9,17 @@ static boot_info_t binfo;
 EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     SystemTable->ConOut->ClearScreen(SystemTable->ConOut);
 
+    // Locate the APCI
+    EFI_GUID acpi_guid = {0x8868e871, 0xe4f1, 0x11d3, {0xbc, 0x22, 0x00, 0x80, 0xc7, 0x3c, 0x88, 0x81}};
+    void *rsdp = 0;
+    for (uint64_t i = 0; i < SystemTable->NumberOfTableEntries; i++) {
+        EFI_GUID *g = &SystemTable->ConfigurationTable[i].VendorGuid;
+        if (g->Data1 == acpi_guid.Data1 && g->Data2 == acpi_guid.Data2 && g->Data3 == acpi_guid.Data3) {
+            rsdp = SystemTable->ConfigurationTable[i].VendorTable;
+            break;
+        }
+    }
+
     // 1. Initialize GOP
     EFI_GUID gopGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
     EFI_GRAPHICS_OUTPUT_PROTOCOL *gop;
@@ -79,6 +90,7 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     // 7. Execute Kernel
     binfo.fb = &fb_info;
     binfo.font = &kernel_font;
+    binfo.rsdp = rsdp;
 
     void (*kernel_entry)(boot_info_t*) = (void (*)(boot_info_t*))kernel_addr;
     kernel_entry(&binfo);

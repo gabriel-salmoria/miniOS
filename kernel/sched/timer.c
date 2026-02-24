@@ -1,6 +1,10 @@
 #include "kernel/sched/timer.h"
 #include "kernel/sched/task.h"
-#include "drivers/ports.h"
+#include "drivers/apic.h"
+
+#define LAPIC_TIMER_DIV  0x03E0
+#define LAPIC_TIMER_INIT 0x0380
+#define LAPIC_TIMER_LVT  0x0320
 
 void timer_callback(registers_t *regs) {
     (void)regs;
@@ -8,16 +12,14 @@ void timer_callback(registers_t *regs) {
 }
 
 void init_timer() {
-    // 1. Program the PIT (Programmable Interval Timer) to ~100Hz
-    uint32_t divisor = 1193180 / 100;
+    // Vector 32 | Periodic Mode (bit 17)
+    apic_write(LAPIC_TIMER_LVT, 32 | 0x20000);
 
-    // Command port 0x43: Channel 0, Lobyte/Hibyte, Square Wave Mode
-    outb(0x43, 0x36);
+    // Divide by 16
+    apic_write(LAPIC_TIMER_DIV, 0x03);
 
-    // Data port 0x40: Send the divisor
-    outb(0x40, (uint8_t)(divisor & 0xFF));
-    outb(0x40, (uint8_t)((divisor >> 8) & 0xFF));
+    // Initial count (arbitrary base, roughly 10-20ms in QEMU)
+    apic_write(LAPIC_TIMER_INIT, 10000000);
 
-    // 2. Register the handler
     register_interrupt_handler(32, timer_callback);
 }

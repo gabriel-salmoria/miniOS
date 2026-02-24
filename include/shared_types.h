@@ -15,6 +15,7 @@ typedef struct {
 typedef struct {
     framebuffer_info_t *fb;
     font_t *font;
+    void *rsdp;
 } boot_info_t;
 
 #endif

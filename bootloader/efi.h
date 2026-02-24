@@ -172,6 +172,11 @@ typedef struct {
     EFI_STATUS (*LocateProtocol)(EFI_GUID *Protocol, void *Registration, void **Interface);
 } EFI_BOOT_SERVICES;
 
+typedef struct {
+    EFI_GUID VendorGuid;
+    void *VendorTable;
+} EFI_CONFIGURATION_TABLE;
+
 typedef struct EFI_SYSTEM_TABLE {
     EFI_TABLE_HEADER Hdr;
     uint16_t *FirmwareVendor;
@@ -184,6 +189,9 @@ typedef struct EFI_SYSTEM_TABLE {
     void *StdErr;
     void *RuntimeServices;
     EFI_BOOT_SERVICES *BootServices;
+    uint64_t NumberOfTableEntries;
+    EFI_CONFIGURATION_TABLE *ConfigurationTable;
 } EFI_SYSTEM_TABLE;
+
 
 #endif
