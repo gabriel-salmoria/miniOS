@@ -1,6 +1,7 @@
 #include "drivers/screen.h"
 #include "kernel/cpu/isr.h"
 #include "drivers/keyboard.h"
+#include "kernel/fs/ext2.h"
 #include "kernel/fs/vfs.h"
 #include "user/shell.h"
 #include "kernel/mem/pmm.h"
@@ -31,6 +32,7 @@ static void init_memory() {
     heap_init();
 
     vfs_init();
+    ext2_init();
 }
 
 static void init_system(boot_info_t *boot_info) {
@@ -54,7 +56,7 @@ void main(boot_info_t *boot_info) {
     init_bss();
 
     init_screen(boot_info);
-    kprint("ShitOS 64-bit: Kernel Started\n");
+    kprint("miniOS 64-bit: Kernel Started\n");
 
     init_system(boot_info);
     init_memory();

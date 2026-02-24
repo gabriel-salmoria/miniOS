@@ -14,9 +14,9 @@
       "build/kernel/main.o",
       "kernel/main.c"
     ],
-    "directory": "/home/gabs/Documents/projects/shitOS",
-    "file": "/home/gabs/Documents/projects/shitOS/kernel/main.c",
-    "output": "/home/gabs/Documents/projects/shitOS/build/kernel/main.o"
+    "directory": "/home/gabs/Documents/projects/miniOS",
+    "file": "/home/gabs/Documents/projects/miniOS/kernel/main.c",
+    "output": "/home/gabs/Documents/projects/miniOS/build/kernel/main.o"
   },
   {
     "arguments": [
@@ -33,9 +33,9 @@
       "build/./libc/string.o",
       "libc/string.c"
     ],
-    "directory": "/home/gabs/Documents/projects/shitOS",
-    "file": "/home/gabs/Documents/projects/shitOS/libc/string.c",
-    "output": "/home/gabs/Documents/projects/shitOS/build/libc/string.o"
+    "directory": "/home/gabs/Documents/projects/miniOS",
+    "file": "/home/gabs/Documents/projects/miniOS/libc/string.c",
+    "output": "/home/gabs/Documents/projects/miniOS/build/libc/string.o"
   },
   {
     "arguments": [
@@ -52,9 +52,9 @@
       "build/./drivers/screen.o",
       "drivers/screen.c"
     ],
-    "directory": "/home/gabs/Documents/projects/shitOS",
-    "file": "/home/gabs/Documents/projects/shitOS/drivers/screen.c",
-    "output": "/home/gabs/Documents/projects/shitOS/build/drivers/screen.o"
+    "directory": "/home/gabs/Documents/projects/miniOS",
+    "file": "/home/gabs/Documents/projects/miniOS/drivers/screen.c",
+    "output": "/home/gabs/Documents/projects/miniOS/build/drivers/screen.o"
   },
   {
     "arguments": [
@@ -71,9 +71,9 @@
       "build/./drivers/pic.o",
       "drivers/pic.c"
     ],
-    "directory": "/home/gabs/Documents/projects/shitOS",
-    "file": "/home/gabs/Documents/projects/shitOS/drivers/pic.c",
-    "output": "/home/gabs/Documents/projects/shitOS/build/drivers/pic.o"
+    "directory": "/home/gabs/Documents/projects/miniOS",
+    "file": "/home/gabs/Documents/projects/miniOS/drivers/pic.c",
+    "output": "/home/gabs/Documents/projects/miniOS/build/drivers/pic.o"
   },
   {
     "arguments": [
@@ -90,9 +90,9 @@
       "build/./drivers/ports.o",
       "drivers/ports.c"
     ],
-    "directory": "/home/gabs/Documents/projects/shitOS",
-    "file": "/home/gabs/Documents/projects/shitOS/drivers/ports.c",
-    "output": "/home/gabs/Documents/projects/shitOS/build/drivers/ports.o"
+    "directory": "/home/gabs/Documents/projects/miniOS",
+    "file": "/home/gabs/Documents/projects/miniOS/drivers/ports.c",
+    "output": "/home/gabs/Documents/projects/miniOS/build/drivers/ports.o"
   },
   {
     "arguments": [
@@ -109,9 +109,9 @@
       "build/./drivers/keyboard.o",
       "drivers/keyboard.c"
     ],
-    "directory": "/home/gabs/Documents/projects/shitOS",
-    "file": "/home/gabs/Documents/projects/shitOS/drivers/keyboard.c",
-    "output": "/home/gabs/Documents/projects/shitOS/build/drivers/keyboard.o"
+    "directory": "/home/gabs/Documents/projects/miniOS",
+    "file": "/home/gabs/Documents/projects/miniOS/drivers/keyboard.c",
+    "output": "/home/gabs/Documents/projects/miniOS/build/drivers/keyboard.o"
   },
   {
     "arguments": [
@@ -128,9 +128,9 @@
       "build/./kernel/cpu/idt.o",
       "kernel/cpu/idt.c"
     ],
-    "directory": "/home/gabs/Documents/projects/shitOS",
-    "file": "/home/gabs/Documents/projects/shitOS/kernel/cpu/idt.c",
-    "output": "/home/gabs/Documents/projects/shitOS/build/kernel/cpu/idt.o"
+    "directory": "/home/gabs/Documents/projects/miniOS",
+    "file": "/home/gabs/Documents/projects/miniOS/kernel/cpu/idt.c",
+    "output": "/home/gabs/Documents/projects/miniOS/build/kernel/cpu/idt.o"
   },
   {
     "arguments": [
@@ -147,9 +147,9 @@
       "build/./kernel/cpu/isr.o",
       "kernel/cpu/isr.c"
     ],
-    "directory": "/home/gabs/Documents/projects/shitOS",
-    "file": "/home/gabs/Documents/projects/shitOS/kernel/cpu/isr.c",
-    "output": "/home/gabs/Documents/projects/shitOS/build/kernel/cpu/isr.o"
+    "directory": "/home/gabs/Documents/projects/miniOS",
+    "file": "/home/gabs/Documents/projects/miniOS/kernel/cpu/isr.c",
+    "output": "/home/gabs/Documents/projects/miniOS/build/kernel/cpu/isr.o"
   },
   {
     "arguments": [
@@ -166,9 +166,9 @@
       "build/./kernel/mem/vmm.o",
       "kernel/mem/vmm.c"
     ],
-    "directory": "/home/gabs/Documents/projects/shitOS",
-    "file": "/home/gabs/Documents/projects/shitOS/kernel/mem/vmm.c",
-    "output": "/home/gabs/Documents/projects/shitOS/build/kernel/mem/vmm.o"
+    "directory": "/home/gabs/Documents/projects/miniOS",
+    "file": "/home/gabs/Documents/projects/miniOS/kernel/mem/vmm.c",
+    "output": "/home/gabs/Documents/projects/miniOS/build/kernel/mem/vmm.o"
   },
   {
     "arguments": [
@@ -185,9 +185,9 @@
       "build/./kernel/mem/pmm.o",
       "kernel/mem/pmm.c"
     ],
-    "directory": "/home/gabs/Documents/projects/shitOS",
-    "file": "/home/gabs/Documents/projects/shitOS/kernel/mem/pmm.c",
-    "output": "/home/gabs/Documents/projects/shitOS/build/kernel/mem/pmm.o"
+    "directory": "/home/gabs/Documents/projects/miniOS",
+    "file": "/home/gabs/Documents/projects/miniOS/kernel/mem/pmm.c",
+    "output": "/home/gabs/Documents/projects/miniOS/build/kernel/mem/pmm.o"
   },
   {
     "arguments": [
@@ -204,9 +204,9 @@
       "build/./kernel/mem/heap.o",
       "kernel/mem/heap.c"
     ],
-    "directory": "/home/gabs/Documents/projects/shitOS",
-    "file": "/home/gabs/Documents/projects/shitOS/kernel/mem/heap.c",
-    "output": "/home/gabs/Documents/projects/shitOS/build/kernel/mem/heap.o"
+    "directory": "/home/gabs/Documents/projects/miniOS",
+    "file": "/home/gabs/Documents/projects/miniOS/kernel/mem/heap.c",
+    "output": "/home/gabs/Documents/projects/miniOS/build/kernel/mem/heap.o"
   },
   {
     "arguments": [
@@ -223,9 +223,9 @@
       "build/./kernel/sched/task.o",
       "kernel/sched/task.c"
     ],
-    "directory": "/home/gabs/Documents/projects/shitOS",
-    "file": "/home/gabs/Documents/projects/shitOS/kernel/sched/task.c",
-    "output": "/home/gabs/Documents/projects/shitOS/build/kernel/sched/task.o"
+    "directory": "/home/gabs/Documents/projects/miniOS",
+    "file": "/home/gabs/Documents/projects/miniOS/kernel/sched/task.c",
+    "output": "/home/gabs/Documents/projects/miniOS/build/kernel/sched/task.o"
   },
   {
     "arguments": [
@@ -242,8 +242,8 @@
       "build/./user/shell.o",
       "user/shell.c"
     ],
-    "directory": "/home/gabs/Documents/projects/shitOS",
-    "file": "/home/gabs/Documents/projects/shitOS/user/shell.c",
-    "output": "/home/gabs/Documents/projects/shitOS/build/user/shell.o"
+    "directory": "/home/gabs/Documents/projects/miniOS",
+    "file": "/home/gabs/Documents/projects/miniOS/user/shell.c",
+    "output": "/home/gabs/Documents/projects/miniOS/build/user/shell.o"
   }
 ]

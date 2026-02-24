@@ -19,26 +19,6 @@ SECTIONS
     PROVIDE(etext = .);
   }
 
-  .init_array ALIGN(8) :
-  {
-    __init_array_start = .;
-    KEEP(*(.init_array))
-    KEEP(*(SORT(.init_array.*)))
-    KEEP(*(.ctors))
-    KEEP(*(SORT_BY_NAME(.ctors.*)))
-    __init_array_end = .;
-  }
-
-  .fini_array ALIGN(8) :
-  {
-    __fini_array_start = .;
-    KEEP(*(.fini_array))
-    KEEP(*(SORT(.fini_array.*)))
-    KEEP(*(.dtors))
-    KEEP(*(SORT_BY_NAME(.dtors.*)))
-    __fini_array_end = .;
-  }
-
   .rdata BLOCK(__section_alignment__) :
   {
     *(.rdata)
@@ -104,10 +84,14 @@ SECTIONS
   }
 
   /DISCARD/ :
-  {
-    *(.drectve)
-    *(.note.GNU-stack)
-    *(.gnu.lto_*)
-    *(.comment)
+    {
+      *(.drectve)
+      *(.note.GNU-stack)
+      *(.gnu.lto_*)
+      *(.comment)
+      *(.init_array*)
+      *(.fini_array*)
+      *(.ctors)
+      *(.dtors)
+    }
   }
-}

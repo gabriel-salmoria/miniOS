@@ -36,10 +36,11 @@ void vfs_init() {
     vfs_stdout = &node_stdout;
 }
 
+extern vfs_node_t *ext2_vfs_open(const char *path);
+
 vfs_node_t *vfs_open(const char *path) {
     if (strcmp(path, "/dev/kbd") == 0) return vfs_stdin;
     if (strcmp(path, "/dev/fb0") == 0) return vfs_stdout;
 
-    // TODO: Route unknown paths to Ext2 filesystem driver
-    return 0;
+    return ext2_vfs_open(path);
 }

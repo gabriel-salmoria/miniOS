@@ -34,11 +34,19 @@ uint64_t syscall_handler(uint64_t id, uint64_t arg1, uint64_t arg2, uint64_t arg
         uint8_t *buf = (uint8_t*)arg2;
         uint32_t count = arg3;
 
-        if (fd < 0 || fd >= MAX_FD || !current_task->fd_table[fd]) return -1;
-        vfs_node_t *node = current_task->fd_table[fd];
+        if (fd < 0 || fd >= MAX_FD || !current_task->fd_table[fd].node) return -1;
 
-        if (id == 0 && node->write) return node->write(node, 0, count, buf);
-        if (id == 1 && node->read) return node->read(node, 0, count, buf);
+        file_descriptor_t *desc = &current_task->fd_table[fd];
+        uint32_t bytes_handled = 0;
+
+        if (id == 0 && desc->node->write) {
+            bytes_handled = desc->node->write(desc->node, desc->offset, count, buf);
+        } else if (id == 1 && desc->node->read) {
+            bytes_handled = desc->node->read(desc->node, desc->offset, count, buf);
+        }
+
+        desc->offset += bytes_handled;
+        return bytes_handled;
     }
     else if (id == 2) {
         exit_task();
@@ -49,13 +57,13 @@ uint64_t syscall_handler(uint64_t id, uint64_t arg1, uint64_t arg2, uint64_t arg
         return 0;
     }
     else if (id == 4) { // sys_open
-        const char *path = (const char*)arg1;
-        vfs_node_t *node = vfs_open(path);
+        vfs_node_t *node = vfs_open((const char*)arg1);
         if (!node) return -1;
 
         for (int i = 0; i < MAX_FD; i++) {
-            if (!current_task->fd_table[i]) {
-                current_task->fd_table[i] = node;
+            if (!current_task->fd_table[i].node) {
+                current_task->fd_table[i].node = node;
+                current_task->fd_table[i].offset = 0;
                 return i;
             }
         }
@@ -63,12 +71,12 @@ uint64_t syscall_handler(uint64_t id, uint64_t arg1, uint64_t arg2, uint64_t arg
     }
     else if (id == 5) { // sys_close
         int fd = arg1;
-        if (fd < 0 || fd >= MAX_FD || !current_task->fd_table[fd]) return -1;
+        if (fd < 0 || fd >= MAX_FD || !current_task->fd_table[fd].node) return -1;
 
-        vfs_node_t *node = current_task->fd_table[fd];
+        vfs_node_t *node = current_task->fd_table[fd].node;
         if (node->close) node->close(node);
 
-        current_task->fd_table[fd] = 0;
+        current_task->fd_table[fd].node = 0;
         return 0;
     }
 

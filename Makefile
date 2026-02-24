@@ -48,11 +48,16 @@ $(BUILD_DIR)/kernel.bin: $(KERNEL_OBJS) linker.ld
 $(BUILD_DIR)/os-image.img: $(BUILD_DIR)/BOOTX64.EFI $(BUILD_DIR)/kernel.bin font.psf
 	@echo "  [IMG]   $@"
 	@dd if=/dev/zero of=$@ bs=1M count=64 status=none
-	@mformat -i $@ -F ::
-	@mmd -i $@ ::/EFI ::/EFI/BOOT
-	@mcopy -i $@ $(BUILD_DIR)/BOOTX64.EFI ::/EFI/BOOT/BOOTX64.EFI
-	@mcopy -i $@ $(BUILD_DIR)/kernel.bin ::/kernel.bin
-	@mcopy -i $@ font.psf ::/font.psf
+	@parted -s $@ mklabel msdos
+	@parted -s $@ mkpart primary fat32 1MiB 33MiB
+	@parted -s $@ set 1 boot on
+	@parted -s $@ mkpart primary ext2 33MiB 100%
+	@mformat -i $@@@1M -F ::
+	@mmd -i $@@@1M ::/EFI ::/EFI/BOOT
+	@mcopy -i $@@@1M $(BUILD_DIR)/BOOTX64.EFI ::/EFI/BOOT/BOOTX64.EFI
+	@mcopy -i $@@@1M $(BUILD_DIR)/kernel.bin ::/kernel.bin
+	@mcopy -i $@@@1M font.psf ::/font.psf
+	@mke2fs -F -E offset=34603008 -t ext2 $@ 31M > /dev/null 2>&1
 
 clean:
 	@echo "  [CLEAN] $(BUILD_DIR)"

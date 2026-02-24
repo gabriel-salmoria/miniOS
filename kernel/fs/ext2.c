@@ -3,6 +3,7 @@
 #include "drivers/screen.h"
 #include "kernel/mem/heap.h"
 #include "kernel/fs/mbr.h"
+#include "kernel/fs/vfs.h"
 #include "libc/string.h"
 
 // --- Globals ---
@@ -181,4 +182,48 @@ void ext2_init() {
     bg_desc_table_offset = (block_size == 1024) ? 2 : 1;
 
     kprint("[Ext2] - Filesystem Mounted.\n");
+}
+
+
+
+static uint32_t ext2_vfs_read(vfs_node_t *node, uint64_t offset, uint32_t size, uint8_t *buffer) {
+    ext2_inode_t inode;
+    ext2_read_inode(node->inode, &inode);
+
+    if (offset >= inode.size) return 0;
+    if (offset + size > inode.size) size = inode.size - offset;
+
+    uint32_t alloc_size = (inode.size + block_size - 1) & ~(block_size - 1);
+    uint8_t *temp = kmalloc(alloc_size);
+
+    ext2_read_file(&inode, temp);
+    memcpy(buffer, temp + offset, size);
+    kfree(temp);
+
+    return size;
+}
+
+static void ext2_vfs_close(vfs_node_t *node) {
+    kfree(node);
+}
+
+vfs_node_t *ext2_vfs_open(const char *path) {
+    if (path[0] == '/') path++;
+
+    ext2_inode_t root;
+    ext2_read_inode(EXT2_ROOT_INO, &root);
+
+    uint32_t ino = ext2_find_file(&root, path);
+    if (!ino) return 0;
+
+    ext2_inode_t target;
+    ext2_read_inode(ino, &target);
+
+    vfs_node_t *node = kmalloc(sizeof(vfs_node_t));
+    node->inode = ino;
+    node->read = ext2_vfs_read;
+    node->write = 0;
+    node->close = ext2_vfs_close;
+
+    return node;
 }

@@ -13,17 +13,20 @@ typedef enum {
 } task_state_t;
 
 
+typedef struct {
+    vfs_node_t *node;
+    uint64_t offset;
+} file_descriptor_t;
+
 typedef struct task {
     uint64_t rsp;
     uint64_t kernel_stack_top;
     uint64_t cr3;
     uint32_t pid;
     task_state_t state;
-    vfs_node_t *fd_table[MAX_FD]; // FD Table
+    file_descriptor_t fd_table[MAX_FD];
     struct task *next;
 } task_t;
-
-
 extern task_t * volatile current_task;
 
 

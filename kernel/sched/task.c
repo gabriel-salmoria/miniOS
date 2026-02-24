@@ -63,27 +63,39 @@ void create_user_task(void (*entry)()) {
     new_task->state = TASK_READY;
     new_task->next = 0;
 
-    new_task->fd_table[0] = vfs_stdin;
-    new_task->fd_table[1] = vfs_stdout;
-    for (int i = 2; i < MAX_FD; i++) new_task->fd_table[i] = 0;
+    // stdin
+    new_task->fd_table[0].node = vfs_stdin;
+    new_task->fd_table[0].offset = 0;
+
+    // stdout
+    new_task->fd_table[1].node = vfs_stdout;
+    new_task->fd_table[1].offset = 0;
+
+    for (int i = 2; i < MAX_FD; i++){
+        new_task->fd_table[i].node = 0;
+        new_task->fd_table[i].offset = 0;
+    }
 
     // Kernel stack for interrupt handling
     uint64_t *kernel_stack = (uint64_t*)kmalloc(4096);
     uint64_t *k_top = (uint64_t*)(((uint64_t)kernel_stack + 4096) & -16ULL);
+
+    // FIX: Save the kernel stack top for context switching
+    new_task->kernel_stack_top = (uint64_t)k_top;
 
     // User stack for Ring 3 execution
     uint64_t *user_stack = (uint64_t*)kmalloc(4096);
     uint64_t user_rsp = ((uint64_t)user_stack + 4096) & -16ULL;
 
     *(--k_top) = 0;
-    *(--k_top) = (uint64_t)jump_usermode; // switch_task 'ret' jumps here
-    *(--k_top) = 0x202;                   // RFLAGS
-    *(--k_top) = 0;                       // rbx
-    *(--k_top) = 0;                       // rbp
-    *(--k_top) = 0;                       // r12
-    *(--k_top) = 0;                       // r13
-    *(--k_top) = (uint64_t)user_rsp;      // r14 (passed to rsi in jump_usermode)
-    *(--k_top) = (uint64_t)entry;         // r15 (passed to rdi in jump_usermode)
+    *(--k_top) = (uint64_t)jump_usermode;
+    *(--k_top) = 0x202;
+    *(--k_top) = 0;
+    *(--k_top) = 0;
+    *(--k_top) = 0;
+    *(--k_top) = 0;
+    *(--k_top) = (uint64_t)user_rsp;
+    *(--k_top) = (uint64_t)entry;
 
     new_task->rsp = (uint64_t)k_top;
 

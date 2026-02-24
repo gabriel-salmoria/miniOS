@@ -15,7 +15,7 @@ char user_getchar() {
 }
 
 void launch_shell() {
-    user_print("\n[ShitOS Shell]\n> ");
+    user_print("\n[miniOS Shell]\n> ");
 
     char input[256];
     int idx = 0;
