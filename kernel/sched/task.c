@@ -50,6 +50,39 @@ void create_task(void (*entry)()) {
     temp->next = new_task;
 }
 
+extern void jump_usermode(uint64_t entry, uint64_t user_rsp);
+
+void create_user_task(void (*entry)()) {
+    task_t *new_task = (task_t*)kmalloc(sizeof(task_t));
+    new_task->pid = next_pid++;
+    new_task->state = TASK_READY;
+    new_task->next = 0;
+
+    // Kernel stack for interrupt handling
+    uint64_t *kernel_stack = (uint64_t*)kmalloc(4096);
+    uint64_t *k_top = (uint64_t*)(((uint64_t)kernel_stack + 4096) & -16ULL);
+
+    // User stack for Ring 3 execution
+    uint64_t *user_stack = (uint64_t*)kmalloc(4096);
+    uint64_t user_rsp = ((uint64_t)user_stack + 4096) & -16ULL;
+
+    *(--k_top) = 0;
+    *(--k_top) = (uint64_t)jump_usermode; // switch_task 'ret' jumps here
+    *(--k_top) = 0x202;                   // RFLAGS
+    *(--k_top) = 0;                       // rbx
+    *(--k_top) = 0;                       // rbp
+    *(--k_top) = 0;                       // r12
+    *(--k_top) = 0;                       // r13
+    *(--k_top) = (uint64_t)user_rsp;      // r14 (passed to rsi in jump_usermode)
+    *(--k_top) = (uint64_t)entry;         // r15 (passed to rdi in jump_usermode)
+
+    new_task->rsp = (uint64_t)k_top;
+
+    task_t *temp = ready_queue;
+    while(temp->next) temp = temp->next;
+    temp->next = new_task;
+}
+
 void block_task() {
     if (current_task) current_task->state = TASK_BLOCKED;
     schedule();

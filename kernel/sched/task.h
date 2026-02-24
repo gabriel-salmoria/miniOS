@@ -21,6 +21,7 @@ extern task_t * volatile ready_queue;
 
 void tasking_init();
 void create_task(void (*entry)());
+void create_user_task(void (*entry)());
 void schedule();
 void block_task();
 void unblock_all();

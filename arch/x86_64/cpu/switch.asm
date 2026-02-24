@@ -21,4 +21,8 @@ switch_task:
     pop rbx
     popfq
 
+    ; Set up arguments for jump_usermode (if this is the first switch to a user task)
+    mov rdi, r15
+    mov rsi, r14
+
     ret
