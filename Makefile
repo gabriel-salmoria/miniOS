@@ -23,7 +23,7 @@ all: $(BUILD_DIR)/os-image.img
 
 run: all
 	@echo "  [RUN]   $(BUILD_DIR)/os-image.img"
-	@$(QEMU) -bios /usr/share/edk2/x64/OVMF.4m.fd -drive format=raw,file=$(BUILD_DIR)/os-image.img
+	@$(QEMU) -bios /usr/share/edk2/x64/OVMF.4m.fd -drive format=raw,file=$(BUILD_DIR)/os-image.img -display sdl
 
 $(BUILD_DIR)/BOOTX64.EFI: bootloader/main.c bootloader/linker.ld
 	@mkdir -p $(dir $@)

@@ -121,14 +121,44 @@ typedef enum {
 } EFI_ALLOCATE_TYPE;
 
 typedef enum {
-    EfiReservedMemoryType,
-    EfiLoaderCode,
-    EfiLoaderData,
-    EfiBootServicesCode,
-    EfiBootServicesData,
-    EfiConventionalMemory,
+    EfiReservedMemoryType      = 0,  // never touch
+    EfiLoaderCode              = 1,  // free after kernel takes over
+    EfiLoaderData              = 2,  // free after kernel takes over
+    EfiBootServicesCode        = 3,  // free after ExitBootServices
+    EfiBootServicesData        = 4,  // free after ExitBootServices
+    EfiConventionalMemory      = 5,  // always free
+    EfiUnusableMemory          = 6,  // bad RAM, never touch
+    EfiACPIReclaimMemory       = 7,  // free after ACPI parsed
+    EfiACPIMemoryNVS           = 8,  // firmware needs forever
+    EfiMemoryMappedIO          = 9,  // MMIO, never touch
+    EfiMemoryMappedIOPortSpace = 10, // never touch
+    EfiPalCode                 = 11, // never touch
+    EfiPersistentMemory        = 12, // NVDIMM, treat like conventional
     EfiMaxMemoryType
 } EFI_MEMORY_TYPE;
+
+// EFI_MEMORY_ATTRIBUTE flags (Attribute field in EFI_MEMORY_DESCRIPTOR)
+#define EFI_MEMORY_UC   0x0000000000000001ULL  // uncacheable
+#define EFI_MEMORY_WC   0x0000000000000002ULL  // write-combining
+#define EFI_MEMORY_WT   0x0000000000000004ULL  // write-through
+#define EFI_MEMORY_WB   0x0000000000000008ULL  // write-back (normal RAM)
+#define EFI_MEMORY_WP   0x0000000000001000ULL  // write-protected
+#define EFI_MEMORY_RP   0x0000000000002000ULL  // read-protected
+#define EFI_MEMORY_XP   0x0000000000004000ULL  // execute-protected
+#define EFI_MEMORY_RO   0x0000000000020000ULL  // read-only
+#define EFI_MEMORY_RUNTIME 0x8000000000000000ULL // must be mapped for runtime services
+
+// One entry in the UEFI memory map.
+// IMPORTANT: iterate using desc_size from GetMemoryMap, NOT sizeof(EFI_MEMORY_DESCRIPTOR).
+// Firmware may append implementation-specific fields beyond the standard layout.
+typedef struct {
+    uint32_t  Type;          // EFI_MEMORY_TYPE
+    uint32_t  _pad;          // implicit padding — must be explicit for correct ABI
+    uint64_t  PhysicalStart; // first byte of region (always page-aligned)
+    uint64_t  VirtualStart;  // ignore until SetVirtualAddressMap is called
+    uint64_t  NumberOfPages; // region size = NumberOfPages * 4096
+    uint64_t  Attribute;     // EFI_MEMORY_* flags above
+} EFI_MEMORY_DESCRIPTOR;
 
 typedef struct {
     EFI_TABLE_HEADER Hdr;

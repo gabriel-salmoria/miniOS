@@ -31,6 +31,25 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     fb_info.height       = gop->Mode->Info->VerticalResolution;
     fb_info.pitch        = gop->Mode->Info->PixelsPerScanLine;
 
+    // Translate EFI pixel format so the kernel doesn't depend on efi.h
+    switch (gop->Mode->Info->PixelFormat) {
+        case PixelRedGreenBlueReserved8BitPerColor:
+            fb_info.pixel_format = FB_PIXEL_RGBX;
+            break;
+        case PixelBlueGreenRedReserved8BitPerColor:
+            fb_info.pixel_format = FB_PIXEL_BGRX;
+            break;
+        case PixelBitMask:
+            fb_info.pixel_format  = FB_PIXEL_MASK;
+            fb_info.pixel_mask_r  = gop->Mode->Info->PixelInformation.RedMask;
+            fb_info.pixel_mask_g  = gop->Mode->Info->PixelInformation.GreenMask;
+            fb_info.pixel_mask_b  = gop->Mode->Info->PixelInformation.BlueMask;
+            break;
+        default:
+            fb_info.pixel_format = FB_PIXEL_UNKNOWN;
+            break;
+    }
+
     // 2. Locate File System
     EFI_GUID loaded_img_guid = EFI_LOADED_IMAGE_PROTOCOL_GUID;
     EFI_GUID sfsp_guid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
@@ -74,23 +93,37 @@ EFI_STATUS efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
     }
 
     // 6. Final Prep for Exit
+    // First call: map_size=0 just queries the required buffer size.
     uint64_t map_size = 0, map_key = 0, desc_size = 0;
     uint32_t desc_version = 0;
     SystemTable->BootServices->GetMemoryMap(&map_size, 0, &map_key, &desc_size, &desc_version);
-    map_size += 4096;
-    void *map_buffer;
-    SystemTable->BootServices->AllocatePages(AllocateAnyPages, EfiLoaderData, (map_size / 4096) + 1, (uint64_t*)&map_buffer);
 
-    // Last possible call to GetMemoryMap before Exit
+    // Add one extra page — AllocatePages itself may add a new descriptor,
+    // which would grow the map and invalidate the key.
+    map_size += desc_size * 4;
+
+    // AllocatePages returns a physical address into a uint64_t, not a pointer.
+    // Keep them separate to avoid ABI confusion.
+    uint64_t map_phys = 0;
+    SystemTable->BootServices->AllocatePages(AllocateAnyPages, EfiLoaderData,
+        (map_size / 4096) + 1, &map_phys);
+    void *map_buffer = (void*)map_phys;
+
+    // Second call: populate the buffer. map_key is now valid for ExitBootServices.
+    // No Boot Services calls are allowed between this and ExitBootServices.
     SystemTable->BootServices->GetMemoryMap(&map_size, map_buffer, &map_key, &desc_size, &desc_version);
 
-    // Exit ONCE
+    // Exit ONCE — any failure here is unrecoverable
     SystemTable->BootServices->ExitBootServices(ImageHandle, map_key);
 
     // 7. Execute Kernel
-    binfo.fb = &fb_info;
-    binfo.font = &kernel_font;
-    binfo.rsdp = rsdp;
+    // No EFI calls are valid past this point.
+    binfo.fb             = &fb_info;
+    binfo.font           = &kernel_font;
+    binfo.rsdp           = rsdp;
+    binfo.mmap           = (memory_map_entry_t*)map_buffer;
+    binfo.mmap_size      = map_size;
+    binfo.mmap_desc_size = desc_size;
 
     void (*kernel_entry)(boot_info_t*) = (void (*)(boot_info_t*))kernel_addr;
     kernel_entry(&binfo);

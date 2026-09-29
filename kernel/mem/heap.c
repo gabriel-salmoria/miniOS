@@ -28,8 +28,6 @@ void heap_init() {
     kprint("[HEAP] - Heap Initialized.\n");
 }
 
-// ... rest of kmalloc and kfree remain the same
-
 void *kmalloc(uint32_t size) {
     if (size == 0) return 0;
     if (size % 8 != 0) size += 8 - (size % 8);

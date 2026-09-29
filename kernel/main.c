@@ -47,7 +47,7 @@ void main(boot_info_t *boot_info) {
     init_bss();
 
     init_screen(boot_info);
-    kprint("ShitOS 64-bit: Kernel Started\n");
+    kprint("miniOS 64-bit: Kernel Started\n");
 
     init_system(boot_info);
     init_memory(boot_info);

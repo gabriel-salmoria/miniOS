@@ -4,7 +4,7 @@
 #include "libc/string.h"
 
 void launch_shell() {
-    kprint("\n[ShitOS Shell - Type 'halt' or 'clear']\n> ");
+    kprint("\n[miniOS Shell - Type 'halt' or 'clear']\n> ");
 
     char input_buffer[256];
 
